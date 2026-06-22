@@ -51,9 +51,10 @@
                 position: sticky;
                 left: 0;
                 background-color: #ffffff !important;
-                z-index: 20;
+                z-index: 10;
                 box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
-                min-width: 130px;
+                min-width: 100px;
+                max-width: 120px;
                 white-space: normal !important;
                 word-break: break-words;
             }
@@ -63,11 +64,11 @@
         }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen md:h-screen flex overflow-y-auto md:overflow-hidden relative">
+<body class="text-slate-800 min-h-screen flex overflow-y-auto relative">
 
     <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 hidden md:hidden"></div>
 
-    <aside id="sidebar" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:sticky w-64 bg-slate-900 text-white flex flex-col shadow-xl z-40 sidebar-transition">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:sticky w-64 bg-slate-900 text-white flex flex-col shadow-xl z-40 sidebar-transition h-screen">
         <button id="sidebar-toggle" class="hidden md:flex absolute -right-3 top-6 bg-indigo-500 text-white w-6 h-6 rounded-full items-center justify-center shadow-lg hover:bg-indigo-600 z-30 focus:outline-none">
             <i class="fa-solid fa-chevron-left text-xs transition-transform" id="toggle-icon"></i>
         </button>
@@ -98,8 +99,9 @@
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-h-screen md:h-full overflow-y-auto md:overflow-hidden w-full relative" id="main-content">
-        <header class="bg-white border-b border-slate-200 flex flex-col justify-between px-4 md:px-6 shrink-0 pt-3 sticky top-0 md:relative z-40">
+    <main class="flex-1 flex flex-col min-h-screen w-full relative overflow-y-auto bg-[#f8fafc]" id="main-content">
+        
+        <header class="bg-white border-b border-slate-200 flex flex-col justify-between px-4 md:px-6 shrink-0 pt-3 relative z-20">
             <div class="flex items-center justify-between w-full pb-2">
                 <div class="flex items-center gap-3">
                     <button id="mobile-menu-btn" class="md:hidden text-slate-600 hover:text-slate-900 p-1 focus:outline-none">
@@ -123,9 +125,9 @@
             <div class="flex gap-1 border-b border-slate-100 -mx-4 px-4 overflow-x-auto whitespace-nowrap scrollbar-none" id="csv-tabs-container"></div>
         </header>
 
-        <div class="flex-1 p-4 md:p-6 space-y-6 scroll-smooth">
+        <div class="p-4 md:p-6 space-y-6">
             
-            <div class="sticky top-[85px] md:relative md:top-0 bg-[#f8fafc] -mx-4 px-4 md:mx-0 md:px-0 pt-2 pb-3 z-30 border-b border-slate-200/60 md:border-b-0 shadow-sm md:shadow-none">
+            <div class="bg-[#f8fafc] pt-2 pb-1">
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                     
                     <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-indigo-500 min-w-0">
@@ -234,8 +236,8 @@
             <div class="bg-white rounded-xl p-4 md:p-6 card-shadow">
                 <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-3">Detailed Breakdown by Product</h3>
                 <div class="overflow-x-auto w-full border border-slate-100 rounded-lg">
-                    <table class="w-full text-xs md:text-sm text-left text-slate-600 min-w-[600px] border-collapse">
-                        <thead class="text-[10px] md:text-xs text-slate-700 uppercase bg-slate-50 sticky top-0 z-30">
+                    <table class="w-full text-xs md:text-sm text-left text-slate-600 min-w-[500px] border-collapse table-fixed">
+                        <thead class="text-[10px] md:text-xs text-slate-700 uppercase bg-slate-50 sticky top-0 z-20">
                             <tr id="dynamic-table-header-row"></tr>
                         </thead>
                         <tbody id="data-table-body" class="divide-y divide-slate-100"></tbody>
@@ -251,10 +253,10 @@
     </div>
 
     <script>
-const csvFilesConfig = [
-            { name: "Financing", file: "pembiayaan.csv", icon: "fa-hand-holding-dollar" },
-            { name: "Funding", file: "dana.csv", icon: "fa-vault" },
-            { name: "Hajj Portion", file: "haji.csv", icon: "fa-kaaba" } // <-- Tab ke-3 berhasil ditambahkan
+        const csvFilesConfig = [
+            { name: "Pembiayaan / Financing", file: "pembiayaan.csv", icon: "fa-hand-holding-dollar" },
+            { name: "Dana / Funding", file: "dana.csv", icon: "fa-vault" },
+            { name: "Hajj Portion", file: "haji.csv", icon: "fa-kaaba" }
         ];
 
         let currentActiveFileIndex = 0;
@@ -267,6 +269,7 @@ const csvFilesConfig = [
         let lastMonth = '';
         let activeTimelineMonths = 0; 
 
+        // URUTAN FILTER LOGIS: CO-BRANCH -> OFFICE (Branch) -> PRODUCT -> GROUP
         const filterColumns = ['CO-BRANCH', 'OFFICE', 'PRODUCT', 'GROUP'];
         
         let distinctProducts = [];
@@ -349,7 +352,7 @@ const csvFilesConfig = [
                 },
                 error: function(err) {
                     console.error("Error loading CSV:", err);
-                    alert(`Gagal memuat berkas file: ${targetFile.file}. Pastikan file tersimpan di folder yang sama.`);
+                    alert(`Gagal memuat file: ${targetFile.file}.`);
                     document.getElementById('loading').style.display = 'none';
                 }
             });
@@ -364,15 +367,16 @@ const csvFilesConfig = [
             document.getElementById('kpi-latest-lbl').innerText = lastMonth;
         }
 
+        // PERBAIKAN HEADER TABLE: KECIL, KATA MELIPAT OTOMATIS MENJADI 2 BARIS (WHITESPACE-NORMAL)
         function buildDynamicTableHeader() {
             const headerRow = document.getElementById('dynamic-table-header-row');
-            let headerHtml = `<th scope="col" class="px-3 py-2.5 rounded-tl-lg sticky-column text-left">Branch</th>`;
+            let headerHtml = `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs font-bold bg-slate-50 sticky-column text-left max-w-[100px] whitespace-normal break-words">Branch</th>`;
             
             distinctProducts.forEach(prod => {
-                headerHtml += `<th scope="col" class="px-3 py-2.5 text-right font-semibold" style="color: ${productColors[prod]};">${prod.replace(/_/g, ' ')}</th>`;
+                headerHtml += `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs text-right font-bold whitespace-normal break-words max-w-[80px]" style="color: ${productColors[prod]};">${prod.replace(/_/g, ' ')}</th>`;
             });
             
-            headerHtml += `<th scope="col" class="px-3 py-2.5 text-right rounded-tr-lg">Total Amount</th>`;
+            headerHtml += `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs text-right font-bold bg-slate-50 max-w-[90px] whitespace-normal break-words">Total Amount</th>`;
             headerRow.innerHTML = headerHtml;
 
             const compSubLabels = document.getElementById('dynamic-group-pct-labels');
@@ -416,13 +420,11 @@ const csvFilesConfig = [
             function openMobileNav() {
                 sidebar.classList.remove('-translate-x-full');
                 backdrop.classList.remove('hidden');
-                document.body.classList.add('overflow-hidden');
             }
 
             function closeMobileNav() {
                 sidebar.classList.add('-translate-x-full');
                 backdrop.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
             }
 
             if(openBtn) openBtn.addEventListener('click', openMobileNav);
@@ -467,7 +469,8 @@ const csvFilesConfig = [
                 
                 const label = document.createElement('label');
                 label.className = "block text-[10px] font-medium text-slate-400 mb-1 uppercase filter-label tracking-wider";
-                label.innerText = col;
+                // Penyesuaian nama label agar pengguna tidak bingung
+                label.innerText = col === 'OFFICE' ? 'BRANCH (OFFICE)' : col;
                 
                 const select = document.createElement('select');
                 select.className = "w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg block p-2 focus:border-indigo-500 focus:outline-none";
@@ -475,7 +478,7 @@ const csvFilesConfig = [
                 
                 const defaultOpt = document.createElement('option');
                 defaultOpt.value = "ALL";
-                defaultOpt.innerText = `All ${col}s`;
+                defaultOpt.innerText = col === 'OFFICE' ? 'All Branches' : `All ${col}s`;
                 select.appendChild(defaultOpt);
 
                 select.addEventListener('change', () => {
@@ -520,6 +523,7 @@ const csvFilesConfig = [
             else { select.value = "ALL"; }
         }
 
+        // FIX LOGIKA TERBALIK: CO-BRANCH MEMFILTER KONTEN OFFICE (BRANCH)
         function handleFilterChange() {
             const coBranchCleanVal = document.getElementById('filter-CO-BRANCH').value;
             const officeCleanVal = document.getElementById('filter-OFFICE').value;
@@ -540,6 +544,7 @@ const csvFilesConfig = [
             applyFilters();
         }
 
+        // Klik nama Branch di tabel akan mengisi filter OFFICE (Branch) secara tepat
         window.filterByBranchLink = function(branchCleanName) {
             document.getElementById('filter-OFFICE').value = branchCleanName;
             applyFilters();
@@ -1040,6 +1045,7 @@ const csvFilesConfig = [
             });
         }
 
+        // BARIS TABEL DIKECILKAN AGAR SEIMBANG DENGAN HEADER MULTI-LINE NYA
         function updateTable() {
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = '';
@@ -1072,17 +1078,17 @@ const csvFilesConfig = [
                 
                 let productCellsHtml = '';
                 distinctProducts.forEach(prod => {
-                    productCellsHtml += `<td class="px-3 py-2.5 text-right font-mono text-xs" style="color: ${productColors[prod]};">${formatNumber(item[prod] || 0)}</td>`;
+                    productCellsHtml += `<td class="px-2 py-2 text-right font-mono text-[11px] max-w-[80px] truncate" style="color: ${productColors[prod]};">${formatNumber(item[prod] || 0)}</td>`;
                 });
 
                 tr.innerHTML = `
-                    <td class="px-3 py-2.5 font-medium sticky-column text-left">
-                        <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1 text-xs whitespace-normal break-words header-link">
-                            <i class="fa-solid fa-filter text-[9px] opacity-40 shrink-0"></i> <span>${item.name}</span>
+                    <td class="px-2 py-2 font-medium sticky-column text-left max-w-[100px]">
+                        <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1 text-[11px] whitespace-normal break-words header-link">
+                            <i class="fa-solid fa-filter text-[8px] opacity-40 shrink-0"></i> <span>${item.name}</span>
                         </a>
                     </td>
                     ${productCellsHtml}
-                    <td class="px-3 py-2.5 text-right font-mono font-bold text-slate-800 text-xs">${formatNumber(item.total)}</td>
+                    <td class="px-2 py-2 text-right font-mono font-bold text-slate-800 text-[11px] max-w-[90px] truncate">${formatNumber(item.total)}</td>
                 `;
                 fragment.appendChild(tr);
             });
