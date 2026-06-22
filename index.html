@@ -2,28 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Executive Dynamic Dashboard</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
         
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         .loader {
             border: 4px solid #f3f3f3;
@@ -36,7 +32,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .sidebar-transition {
-            transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .collapsed .nav-text, 
@@ -49,189 +45,194 @@
         .collapsed .nav-header { justify-content: center; }
         .collapsed .logo-text { display: none; }
 
-/* Efek fade-in instan dan ringan tanpa membebani prosesor */
-        @keyframes fastFade {
-            from { opacity: 0; transform: translateY(1px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Kunci kolom pertama tabel saat digeser di mobile */
+        @media (max-width: 768px) {
+            .sticky-column {
+                position: sticky;
+                left: 0;
+                background-color: #ffffff;
+                z-index: 10;
+                box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
+            }
+            th.sticky-column {
+                background-color: #f8fafc !important;
+            }
         }
-</style>
+    </style>
 </head>
-<body class="text-slate-800 h-screen flex overflow-hidden">
+<body class="text-slate-800 h-screen flex overflow-hidden relative">
 
-    <aside id="sidebar" class="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20 sidebar-transition relative">
-        <button id="sidebar-toggle" class="absolute -right-3 top-6 bg-indigo-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg hover:bg-indigo-600 z-30 focus:outline-none">
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 hidden md:hidden"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:sticky w-64 bg-slate-900 text-white flex flex-col shadow-xl z-40 sidebar-transition">
+        <button id="sidebar-toggle" class="hidden md:flex absolute -right-3 top-6 bg-indigo-500 text-white w-6 h-6 rounded-full items-center justify-center shadow-lg hover:bg-indigo-600 z-30 focus:outline-none">
             <i class="fa-solid fa-chevron-left text-xs transition-transform" id="toggle-icon"></i>
         </button>
 
-        <div class="p-6 flex items-center gap-3 border-b border-slate-700 nav-header">
+        <button id="sidebar-close-mobile" class="md:hidden absolute right-4 top-5 text-slate-400 hover:text-white text-lg">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="p-5 flex items-center gap-3 border-b border-slate-700 nav-header">
             <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center shrink-0">
                 <i class="fa-solid fa-chart-line text-white text-sm"></i>
             </div>
-            <h1 class="font-bold text-lg tracking-wide logo-text">Executive<br><span class="text-indigo-400">Dashboard</span></h1>
+            <h1 class="font-bold text-base tracking-wide logo-text">Executive<br><span class="text-indigo-400">Dashboard</span></h1>
         </div>
 
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-            <div id="filter-container" class="space-y-4">
-                </div>
+            <div id="filter-container" class="space-y-4"></div>
         </nav>
 
         <div class="p-4 border-t border-slate-700 bg-slate-800 user-info">
             <div class="flex items-center gap-3">
-                <img src="https://ui-avatars.com/api/?name=AD&background=4f46e5&color=fff" alt="User" class="w-10 h-10 rounded-full border-2 border-slate-600 shrink-0">
+                <img src="https://ui-avatars.com/api/?name=AD&background=4f46e5&color=fff" alt="User" class="w-9 h-9 rounded-full border-2 border-slate-600 shrink-0">
                 <div>
-                    <p class="text-sm font-medium">Region Sumatera</p>
-                    <p class="text-xs text-slate-400">Sales & Funding</p>
+                    <p class="text-xs font-medium">Region Sumatera</p>
+                    <p class="text-[10px] text-slate-400">Sales & Funding</p>
                 </div>
             </div>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-full overflow-hidden relative transition-all duration-300" id="main-content">
-        <header class="bg-white border-b border-slate-200 flex flex-col justify-between px-6 shrink-0 pt-3">
+    <main class="flex-1 flex flex-col h-full overflow-hidden w-full relative" id="main-content">
+        <header class="bg-white border-b border-slate-200 flex flex-col justify-between px-4 md:px-6 shrink-0 pt-3">
             <div class="flex items-center justify-between w-full pb-2">
-                <div class="flex items-center gap-4">
-                    <button id="mobile-menu-btn" class="md:hidden text-slate-500 hover:text-slate-700">
-                        <i class="fa-solid fa-bars text-xl"></i>
+                <div class="flex items-center gap-3">
+                    <button id="mobile-menu-btn" class="md:hidden text-slate-600 hover:text-slate-900 p-1 focus:outline-none">
+                        <i class="fa-solid fa-bars text-lg"></i>
                     </button>
-                    <h2 class="text-xl font-semibold text-slate-800" id="dashboard-main-title">Performance Analytics</h2>
+                    <h2 class="text-lg md:text-xl font-semibold text-slate-800 truncate" id="dashboard-main-title">Performance Analytics</h2>
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
                     <div class="text-right hidden sm:block">
-                        <p class="text-xs text-slate-500">As of Date</p>
-                        <p class="text-sm font-medium text-indigo-600" id="current-date">-</p>
+                        <p class="text-[10px] text-slate-500">As of Date</p>
+                        <p class="text-xs font-medium text-indigo-600" id="current-date">-</p>
                     </div>
                     <div>
-                        <button onclick="resetFilters()" class="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
-                            <i class="fa-solid fa-rotate-right mr-2"></i>Reset View
+                        <button onclick="resetFilters()" class="px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors flex items-center">
+                            <i class="fa-solid fa-rotate-right mr-1.5"></i>Reset
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="flex gap-2 border-b border-slate-100 -mx-6 px-6" id="csv-tabs-container">
-                </div>
+            <div class="flex gap-1 border-b border-slate-100 -mx-4 px-4 overflow-x-auto whitespace-nowrap scrollbar-none" id="csv-tabs-container"></div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-6 scroll-smooth">
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-xl p-5 card-shadow border-l-4 border-indigo-500">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-indigo-500">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-semibold text-slate-500" id="kpi-total-label">Total Outstanding</p>
-                            <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-total">0</h3>
+                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" id="kpi-total-label">Total Outstanding</p>
+                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1" id="kpi-total">0</h3>
                         </div>                        
-                        <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                        <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 text-sm">
                             <i class="fa-solid fa-calculator"></i>
                         </div>
                     </div>
-                    <div class="mt-4 flex items-center text-xs">
-                        <span class="text-slate-400">Latest Month: <i id="kpi-latest-lbl">-</i></span>
+                    <div class="mt-3 flex items-center text-[11px]">
+                        <span class="text-slate-400">Latest Month: <i id="kpi-latest-lbl" class="not-italic font-medium text-slate-600">-</i></span>
                     </div>                    
                 </div>
 
-                <!-- Segment 1 Total -->
-                <div class="bg-white rounded-xl p-5 card-shadow border-l-4 border-emerald-500">
+                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-emerald-500">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-semibold text-slate-500" id="kpi-segment1-label">Segment 1</p>
-                            <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-segment1">0</h3>
+                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" id="kpi-segment1-label">Segment 1</p>
+                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1" id="kpi-segment1">0</h3>
                         </div>
-                        <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600">
+                        <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600 text-sm">
                             <i class="fa-solid fa-layer-group"></i>
                         </div>
                     </div>
-                    <!-- PERBAIKAN: Berikan id pada tag i agar bisa diisi persentase kontribusi -->
-                    <div class="mt-4 flex items-center text-xs">
+                    <div class="mt-3 flex items-center text-[11px]">
                         <span class="text-slate-400">Contribution: <i id="kpi-segment1-pct" class="font-semibold text-emerald-600 not-italic">0%</i></span>
                     </div>
                 </div>
 
-                <!-- Segment 2 Total -->
-                <div class="bg-white rounded-xl p-5 card-shadow border-l-4 border-amber-500">
+                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-amber-500">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-semibold text-slate-500" id="kpi-segment2-label">Segment 2</p>
-                            <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-segment2">0</h3>
+                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" id="kpi-segment2-label">Segment 2</p>
+                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1" id="kpi-segment2">0</h3>
                         </div>
-                        <div class="p-2 bg-amber-50 rounded-lg text-amber-600">
+                        <div class="p-2 bg-amber-50 rounded-lg text-amber-600 text-sm">
                             <i class="fa-solid fa-boxes-stacked"></i>
                         </div>
                     </div>
-                    <!-- PERBAIKAN: Berikan id pada tag i agar bisa diisi persentase kontribusi -->
-                    <div class="mt-4 flex items-center text-xs">
+                    <div class="mt-3 flex items-center text-[11px]">
                         <span class="text-slate-400">Contribution: <i id="kpi-segment2-pct" class="font-semibold text-amber-600 not-italic">0%</i></span>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-5 card-shadow border-l-4 border-blue-500">
+                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-blue-500">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-xs font-semibold text-slate-500">Top Dominant Product</p>
-                            <h3 class="text-2xl font-bold text-slate-800 mt-1 truncate" id="kpi-top-product">-</h3>
+                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Top Dominant Product</p>
+                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1 truncate max-w-[160px] sm:max-w-none" id="kpi-top-product">-</h3>
                         </div>
-                        <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                        <div class="p-2 bg-blue-50 rounded-lg text-blue-600 text-sm">
                             <i class="fa-solid fa-trophy"></i>
                         </div>
                     </div>
-                    <div class="mt-4 flex items-center text-xs">
+                    <div class="mt-3 flex items-center text-[11px]">
                         <span class="text-slate-400"><i>By Selected Month Volume</i></span>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <div class="lg:col-span-2 bg-white rounded-xl p-6 card-shadow flex flex-col justify-between">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                <div class="lg:col-span-2 bg-white rounded-xl p-4 md:p-6 card-shadow flex flex-col justify-between">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                        <h3 class="font-semibold text-slate-700" id="trend-title">Performance Trend</h3>
-                        <div class="inline-flex rounded-md shadow-sm bg-slate-100 p-1" role="group">
-                            <button onclick="changeTimeline(3)" id="btn-time-3" class="px-3 py-1 text-xs font-medium text-slate-700 rounded-md hover:bg-white transition-all">3M</button>
-                            <button onclick="changeTimeline(6)" id="btn-time-6" class="px-3 py-1 text-xs font-medium text-slate-700 rounded-md hover:bg-white transition-all">6M</button>
-                            <button onclick="changeTimeline(12)" id="btn-time-12" class="px-3 py-1 text-xs font-medium text-slate-700 rounded-md hover:bg-white transition-all">12M</button>
-                            <button onclick="changeTimeline(0)" id="btn-time-all" class="px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded-md transition-all">All</button>
+                        <h3 class="font-semibold text-sm md:text-base text-slate-700" id="trend-title">Performance Trend</h3>
+                        <div class="inline-flex rounded-md shadow-sm bg-slate-100 p-1 self-stretch sm:self-auto justify-between" role="group">
+                            <button onclick="changeTimeline(3)" id="btn-time-3" class="flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-slate-700 rounded-md hover:bg-white transition-all">3M</button>
+                            <button onclick="changeTimeline(6)" id="btn-time-6" class="flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-slate-700 rounded-md hover:bg-white transition-all">6M</button>
+                            <button onclick="changeTimeline(12)" id="btn-time-12" class="flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-slate-700 rounded-md hover:bg-white transition-all">12M</button>
+                            <button onclick="changeTimeline(0)" id="btn-time-all" class="flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-white bg-indigo-600 rounded-md transition-all">All</button>
                         </div>
                     </div>
-                    <div class="relative h-72 w-full flex-1">
+                    <div class="relative h-56 md:h-72 w-full flex-1">
                         <canvas id="trendChart"></canvas>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <h3 class="font-semibold text-slate-700 mb-4">Product Mix (Latest Month)</h3>
-                    <div class="relative h-64 w-full flex justify-center">
+                <div class="bg-white rounded-xl p-4 md:p-6 card-shadow">
+                    <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-4">Product Mix (Latest Month)</h3>
+                    <div class="relative h-52 md:h-64 w-full flex justify-center">
                         <canvas id="compositionChart"></canvas>
                     </div>
-                    <div class="mt-4 grid grid-cols-2 gap-2 text-center text-xs text-slate-500" id="dynamic-group-pct-labels">
-                        </div>
+                    <div class="mt-4 grid grid-cols-2 gap-2 text-center text-[11px] text-slate-500" id="dynamic-group-pct-labels"></div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <h3 class="font-semibold text-slate-700 mb-4">Top 5 CO-Branches by Volume</h3>
-                    <div class="relative h-64 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                <div class="bg-white rounded-xl p-4 md:p-6 card-shadow">
+                    <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-4">Top 5 CO-Branches by Volume</h3>
+                    <div class="relative h-56 md:h-64 w-full">
                         <canvas id="coBranchChart"></canvas>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <h3 class="font-semibold text-slate-700 mb-4">Top 5 Branches by Volume</h3>
-                    <div class="relative h-64 w-full">
+                <div class="bg-white rounded-xl p-4 md:p-6 card-shadow">
+                    <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-4">Top 5 Branches by Volume</h3>
+                    <div class="relative h-56 md:h-64 w-full">
                         <canvas id="branchChart"></canvas>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl p-6 card-shadow mb-8">
-                <h3 class="font-semibold text-slate-700 mb-4">Detailed Breakdown by Product (Latest Month)</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-slate-600">
-                        <thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0">
-                            <tr id="dynamic-table-header-row">
-                                </tr>
+            <div class="bg-white rounded-xl p-4 md:p-6 card-shadow">
+                <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-3">Detailed Breakdown by Product</h3>
+                <div class="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+                    <table class="w-full text-xs md:text-sm text-left text-slate-600 min-w-[600px]">
+                        <thead class="text-[10px] md:text-xs text-slate-700 uppercase bg-slate-50 sticky top-0">
+                            <tr id="dynamic-table-header-row"></tr>
                         </thead>
-                        <tbody id="data-table-body" class="divide-y divide-slate-100">
-                            </tbody>
+                        <tbody id="data-table-body" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
@@ -244,10 +245,6 @@
     </div>
 
     <script>
-        // =========================================================================
-        // CONFIG ARRAY: COKUP EDIT / TAMBAH FILENYA DI SINI JIKA ADA BARU
-        // File urutan pertama otomatis menjadi default saat pertama kali dibuka.
-        // =========================================================================
         const csvFilesConfig = [
             { name: "Pembiayaan / Financing", file: "pembiayaan.csv", icon: "fa-hand-holding-dollar" },
             { name: "Dana / Funding", file: "dana.csv", icon: "fa-vault" }
@@ -269,7 +266,6 @@
         let productColors = {};
         let groupLabels = []; 
 
-        // Generate palet warna acak dinamis yang estetik
         function generateColorsForProducts(products) {
             const presetColors = [
                 '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', 
@@ -277,19 +273,18 @@
             ];
             let colors = {};
             products.forEach((prod, index) => {
-                colors[prod] = presetColors[index % presetColors.length]; 
+                colors[prod] = presetColors[index % presetColors.length];
             });
             return colors;
         }
 
-        // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            buildCSVTabs(); // Langkah 1: Bangun Tab Header
-            loadSelectedCSV(currentActiveFileIndex); // Langkah 2: Muat data pertama (Default)
+            buildCSVTabs(); 
+            loadSelectedCSV(currentActiveFileIndex); 
             initSidebarToggle();
+            initMobileSidebar(); // Pemicu kontrol layar sentuh HP
         });
 
-        // Membentuk elemen tab di bagian atas header halaman
         function buildCSVTabs() {
             const container = document.getElementById('csv-tabs-container');
             container.innerHTML = '';
@@ -297,7 +292,7 @@
             csvFilesConfig.forEach((cfg, idx) => {
                 const btn = document.createElement('button');
                 btn.id = `tab-csv-${idx}`;
-                btn.className = `py-3 px-4 font-medium text-sm flex items-center gap-2 border-b-2 transition-all focus:outline-none ${
+                btn.className = `py-2.5 px-4 font-medium text-xs md:text-sm flex items-center gap-2 border-b-2 transition-all focus:outline-none shrink-0 ${
                     idx === currentActiveFileIndex 
                     ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50' 
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
@@ -308,37 +303,32 @@
             });
         }
 
-        // Fungsi ketika user memindahkan tab file CSV di atas
         function switchCSVTab(index) {
             if(index === currentActiveFileIndex) return;
             
-            // Ganti status UI tab aktif
-            document.getElementById(`tab-csv-${currentActiveFileIndex}`).className = 'py-3 px-4 font-medium text-sm flex items-center gap-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300';
-            document.getElementById(`tab-csv-${index}`).className = 'py-3 px-4 font-medium text-sm flex items-center gap-2 border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50/50';
+            document.getElementById(`tab-csv-${currentActiveFileIndex}`).className = 'py-2.5 px-4 font-medium text-xs md:text-sm flex items-center gap-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 shrink-0';
+            document.getElementById(`tab-csv-${index}`).className = 'py-2.5 px-4 font-medium text-xs md:text-sm flex items-center gap-2 border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50/50 shrink-0';
             
             currentActiveFileIndex = index;
             document.getElementById('loading').style.display = 'flex';
             
-            // Set ulang variabel lini masa ke posisi semula ("All")
             activeTimelineMonths = 0; 
             loadSelectedCSV(index);
         }
 
         function loadSelectedCSV(index) {
             const targetFile = csvFilesConfig[index];
-            document.getElementById('dashboard-main-title').innerText = `${targetFile.name} Dashboard`;
+            document.getElementById('dashboard-main-title').innerText = `${targetFile.name.split(' / ')[0]} Dashboard`;
 
             Papa.parse(targetFile.file, {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
-                delimiter: "", // Otomatis mengenali pemisah koma atau titik koma
+                delimiter: "", 
                 complete: function(results) {
                     rawData = results.data;
                     if(rawData.length > 0) {
                         detectColumns(rawData[0]);
-                        
-                        // Menangkap struktur isi produk dan grup secara dinamis langsung dari file
                         distinctProducts = [...new Set(rawData.map(row => row.PRODUCT))].filter(Boolean);
                         productColors = generateColorsForProducts(distinctProducts);
                         groupLabels = [...new Set(rawData.map(row => row.GROUP))].filter(Boolean);
@@ -369,22 +359,22 @@
 
         function buildDynamicTableHeader() {
             const headerRow = document.getElementById('dynamic-table-header-row');
-            let headerHtml = `<th scope="col" class="px-4 py-3 rounded-tl-lg">Branch</th>`;
+            // Menambahkan class 'sticky-column' agar nama cabang tetap diam saat di-scroll ke kanan di layar HP
+            let headerHtml = `<th scope="col" class="px-3 py-2.5 rounded-tl-lg sticky-column shadow-sm">Branch</th>`;
             
             distinctProducts.forEach(prod => {
-                headerHtml += `<th scope="col" class="px-4 py-3 text-right font-semibold" style="color: ${productColors[prod]};">${prod.replace(/_/g, ' ')}</th>`;
+                headerHtml += `<th scope="col" class="px-3 py-2.5 text-right font-semibold" style="color: ${productColors[prod]};">${prod.replace(/_/g, ' ')}</th>`;
             });
             
-            headerHtml += `<th scope="col" class="px-4 py-3 text-right rounded-tr-lg">Total Amount</th>`;
+            headerHtml += `<th scope="col" class="px-3 py-2.5 text-right rounded-tr-lg">Total Amount</th>`;
             headerRow.innerHTML = headerHtml;
 
-            // Membangun ulang label persentase segmen di bawah chart lingkaran donut
             const compSubLabels = document.getElementById('dynamic-group-pct-labels');
             if (compSubLabels) {
                 compSubLabels.innerHTML = groupLabels.map((grp, i) => `
                     <div class="bg-slate-50 p-2 rounded">
-                        <span class="block font-bold text-slate-700" id="comp-group-pct-${i}">0%</span>
-                        ${grp}
+                        <span class="block font-bold text-slate-700 text-xs md:text-sm" id="comp-group-pct-${i}">0%</span>
+                        <span class="text-[10px] text-slate-400 block truncate">${grp}</span>
                     </div>
                 `).join('');
             }
@@ -395,18 +385,44 @@
             const toggleBtn = document.getElementById('sidebar-toggle');
             const toggleIcon = document.getElementById('toggle-icon');
             
-            toggleBtn.addEventListener('click', () => {
-                isSidebarCollapsed = !isSidebarCollapsed;
-                if (isSidebarCollapsed) {
-                    sidebar.classList.add('collapsed');
-                    sidebar.style.width = '80px';
-                    toggleIcon.classList.add('rotate-180');
-                } else {
-                    sidebar.classList.remove('collapsed');
-                    sidebar.style.width = '16rem';
-                    toggleIcon.classList.remove('rotate-180');
-                }
-            });
+            if(toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    isSidebarCollapsed = !isSidebarCollapsed;
+                    if (isSidebarCollapsed) {
+                        sidebar.classList.add('collapsed');
+                        sidebar.style.width = '70px';
+                        toggleIcon.classList.add('rotate-180');
+                    } else {
+                        sidebar.classList.remove('collapsed');
+                        sidebar.style.width = '16rem';
+                        toggleIcon.classList.remove('rotate-180');
+                    }
+                });
+            }
+        }
+
+        // Handler Khusus Drawer Navigasi Mobile
+        function initMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const openBtn = document.getElementById('mobile-menu-btn');
+            const closeBtn = document.getElementById('sidebar-close-mobile');
+
+            function openMobileNav() {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closeMobileNav() {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            if(openBtn) openBtn.addEventListener('click', openMobileNav);
+            if(closeBtn) closeBtn.addEventListener('click', closeMobileNav);
+            if(backdrop) backdrop.addEventListener('click', closeMobileNav);
         }
 
         function cleanName(name) {
@@ -442,14 +458,14 @@
 
             filterColumns.forEach(col => {
                 const wrapper = document.createElement('div');
-                wrapper.className = "mb-3";
+                wrapper.className = "mb-2";
                 
                 const label = document.createElement('label');
-                label.className = "block text-xs font-medium text-slate-400 mb-1 uppercase filter-label";
+                label.className = "block text-[10px] font-medium text-slate-400 mb-1 uppercase filter-label tracking-wider";
                 label.innerText = col;
                 
                 const select = document.createElement('select');
-                select.className = "w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg block p-2.5";
+                select.className = "w-full bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg block p-2 focus:border-indigo-500 focus:outline-none";
                 select.id = `filter-${col}`;
                 
                 const defaultOpt = document.createElement('option');
@@ -457,7 +473,14 @@
                 defaultOpt.innerText = `All ${col}s`;
                 select.appendChild(defaultOpt);
 
-                select.addEventListener('change', handleFilterChange);
+                select.addEventListener('change', () => {
+                    handleFilterChange();
+                    // Otomatis tutup drawer di mobile begitu filter dipilih
+                    if(window.innerWidth < 768) {
+                        document.getElementById('sidebar').classList.add('-translate-x-full');
+                        document.getElementById('sidebar-backdrop').classList.add('hidden');
+                    }
+                });
 
                 wrapper.appendChild(label);
                 wrapper.appendChild(select);
@@ -544,9 +567,9 @@
                 const btn = document.getElementById(id);
                 if (btn) {
                     if(parseInt(m) === months) {
-                        btn.className = "px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded-md transition-all";
+                        btn.className = "flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-white bg-indigo-600 rounded-md transition-all";
                     } else {
-                        btn.className = "px-3 py-1 text-xs font-medium text-slate-700 rounded-md hover:bg-white transition-all";
+                        btn.className = "flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-slate-700 rounded-md hover:bg-white transition-all";
                     }
                 }
             });
@@ -569,8 +592,8 @@
             Object.entries(ids).forEach(([m, id]) => {
                 const btn = document.getElementById(id);
                 if (btn) {
-                    if(parseInt(m) === 0) btn.className = "px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded-md transition-all";
-                    else btn.className = "px-3 py-1 text-xs font-medium text-slate-700 rounded-md hover:bg-white transition-all";
+                    if(parseInt(m) === 0) btn.className = "flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-white bg-indigo-600 rounded-md transition-all";
+                    else btn.className = "flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-slate-700 rounded-md hover:bg-white transition-all";
                 }
             });
             updateDashboard();
@@ -606,7 +629,6 @@
                 productTotals[product] += val;
             });
 
-            // 1. Animasi untuk KPI Cards Utama
             animateNumber(document.getElementById('kpi-total'), grandTotal);
 
             const g1 = groupLabels[0];
@@ -615,16 +637,13 @@
             const g1Pct = grandTotal ? ((groupTotals[g1] / grandTotal) * 100) : 0;
             const g2Pct = grandTotal ? ((groupTotals[g2] / grandTotal) * 100) : 0;
 
-            // Update & Animasi Card Segmen 1
             document.getElementById('kpi-segment1-label').innerText = g1 ? `Total ${g1}` : 'Segment 1';
             animateNumber(document.getElementById('kpi-segment1'), g1 ? groupTotals[g1] : 0);
             if (document.getElementById('kpi-segment1-pct')) {
-                // Membuat elemen teks statis wadah, lalu menganimasikan angka di dalamnya
                 document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-g1-pct">0%</span> dari total`;
                 animateNumber(document.getElementById('anim-g1-pct'), g1Pct, true);
             }
 
-            // Update & Animasi Card Segmen 2
             document.getElementById('kpi-segment2-label').innerText = g2 ? `Total ${g2}` : 'Segment 2';
             animateNumber(document.getElementById('kpi-segment2'), g2 ? groupTotals[g2] : 0);
             if (document.getElementById('kpi-segment2-pct')) {
@@ -632,7 +651,6 @@
                 animateNumber(document.getElementById('anim-g2-pct'), g2Pct, true);
             }
 
-            // Menghitung Sektor Terbesar (Top Product)
             let topProduct = "-";
             let maxVal = 0;
             for (const [prod, total] of Object.entries(productTotals)) {
@@ -640,7 +658,6 @@
             }
             document.getElementById('kpi-top-product').innerText = topProduct.replace(/_/g, ' ');
 
-            // 2. Animasi Persentase pada Sub-Label Mix Donut Chart
             groupLabels.forEach((grp, idx) => {
                 const element = document.getElementById(`comp-group-pct-${idx}`);
                 if(element) {
@@ -662,7 +679,7 @@
             let labels = [...monthColumns];
             if (activeTimelineMonths > 0) { labels = labels.slice(-activeTimelineMonths); }
             
-            document.getElementById('trend-title').innerText = `Trend Analysis by Product (${labels[0]} to ${labels[labels.length - 1]})`;
+            document.getElementById('trend-title').innerText = `Trend Analysis (${labels[0]} to ${labels[labels.length - 1]})`;
 
             const getTransparentColor = (hex) => {
                 if (!hex || !hex.startsWith('#')) return 'rgba(0,0,0,0.15)';
@@ -685,10 +702,10 @@
                     backgroundColor: getTransparentColor(productColors[prod]), 
                     borderWidth: 2,
                     tension: 0.3,
-                    pointRadius: 4,
+                    pointRadius: window.innerWidth < 768 ? 2 : 4, // Perkecil titik di HP
                     pointBackgroundColor: '#ffffff', 
                     pointBorderColor: productColors[prod],
-                    pointBorderWidth: 2
+                    pointBorderWidth: 1.5
                 };
             });
 
@@ -703,13 +720,13 @@
                 data: totalDataPoints,
                 borderColor: '#1e293b', 
                 backgroundColor: 'rgba(30, 41, 59, 0.15)', 
-                borderWidth: 3,
+                borderWidth: 2.5,
                 borderDash: [5, 5],
                 tension: 0.3,
-                pointRadius: 4,
+                pointRadius: window.innerWidth < 768 ? 2 : 4,
                 pointBackgroundColor: '#ffffff',
                 pointBorderColor: '#1e293b',
-                pointBorderWidth: 2
+                pointBorderWidth: 1.5
             });
 
             if (charts.trend) charts.trend.destroy();
@@ -727,8 +744,9 @@
                             labels: { 
                                 usePointStyle: true, 
                                 pointStyle: 'circle',
-                                boxWidth: 12, 
-                                padding: 20,
+                                boxWidth: 8, 
+                                padding: window.innerWidth < 768 ? 10 : 20,
+                                font: { size: window.innerWidth < 768 ? 9 : 11 },
                                 generateLabels: function(chart) {
                                     return chart.data.datasets.map((dataset, i) => {
                                         return {
@@ -737,7 +755,7 @@
                                             pointStyle: 'circle',
                                             fillStyle: dataset.backgroundColor,
                                             strokeStyle: dataset.borderColor,
-                                            lineWidth: 2.5,
+                                            lineWidth: 2,
                                             hidden: !chart.isDatasetVisible(i)
                                         };
                                     });
@@ -749,8 +767,8 @@
                         }
                     },
                     scales: {
-                        y: { grid: { display: false }, ticks: { callback: (val) => val / 1000 + 'k'} },
-                        x: { grid: { display: false } }
+                        y: { grid: { display: false }, ticks: { font: { size: 9 }, callback: (val) => val / 1000 + 'k'} },
+                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
                     }
                 }
             });
@@ -786,8 +804,9 @@
                             position: 'bottom', 
                             labels: { 
                                 usePointStyle: true, 
-                                padding: 20, 
-                                boxWidth: 10,
+                                padding: window.innerWidth < 768 ? 10 : 20, 
+                                boxWidth: 8,
+                                font: { size: window.innerWidth < 768 ? 9 : 11 },
                                 generateLabels: function(chart) {
                                     const data = chart.data;
                                     if (data.labels.length && data.datasets.length) {
@@ -803,7 +822,7 @@
                                                 pointStyle: 'circle',
                                                 fillStyle: `rgba(${r}, ${g}, ${b}, 0.15)`,
                                                 strokeStyle: baseColor,
-                                                lineWidth: 2.5,
+                                                lineWidth: 2,
                                                 hidden: isNaN(dataset.data[i]) || chart.getDatasetMeta(0).data[i].hidden
                                             };
                                         });
@@ -845,7 +864,7 @@
                         return totalProd;
                     }),
                     backgroundColor: productColors[prod],
-                    barThickness: 16
+                    barThickness: window.innerWidth < 768 ? 12 : 16
                 };
             });
 
@@ -858,33 +877,17 @@
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: false, 
                     plugins: {
                         legend: { 
                             display: true, 
                             position: 'bottom',
-                            labels: { usePointStyle: true, boxWidth: 12, padding: 20 }
+                            labels: { usePointStyle: true, boxWidth: 8, padding: 12, font: { size: 9 } }
                         }
                     },
                     scales: {
                         x: { stacked: true, display: false, grid: { display: false } },
-                        y: { stacked: true, grid: { display: false } }
-                    }
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: false, // MATIKAN ANIMASI BAWAAN CHART BAR
-                    plugins: {
-                        legend: { 
-                            display: true, 
-                            position: 'bottom',
-                            labels: { usePointStyle: true, boxWidth: 12, padding: 20 }
-                        }
-                    },
-                    scales: {
-                        x: { stacked: true, display: false, grid: { display: false } },
-                        y: { stacked: true, grid: { display: false } }
+                        y: { stacked: true, grid: { display: false }, ticks: { font: { size: 9 } } }
                     }
                 },
                 plugins: [{
@@ -892,7 +895,7 @@
                     afterDatasetsDraw(chart) {
                         const { ctx } = chart;
                         ctx.save();
-                        ctx.font = 'bold 10px Inter, sans-serif';
+                        ctx.font = 'bold 9px Inter, sans-serif';
                         ctx.fillStyle = '#ffffff'; 
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
@@ -916,13 +919,10 @@
                                     
                                     if (element && val > 0) {
                                         const pct = ((val / totalBarValue) * 100).toFixed(0) + '%';
-                                        
-                                        // PERBAIKAN UTAMA: Gunakan Math.abs agar lebar piksel selalu positif & akurat
                                         const width = Math.abs(element.x - element.base);
                                         const centerX = element.base + ((element.x - element.base) / 2);
                                         const centerY = element.y;
 
-                                        // Toleransi diperkecil menjadi > 2 agar segmen pendek/awal tetap dipaksa muncul
                                         if (width > 2) {
                                             ctx.fillText(pct, centerX, centerY);
                                         }
@@ -964,7 +964,7 @@
                         return totalProd;
                     }),
                     backgroundColor: productColors[prod],
-                    barThickness: 16
+                    barThickness: window.innerWidth < 768 ? 12 : 16
                 };
             });
 
@@ -977,33 +977,17 @@
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: false, 
                     plugins: {
                         legend: { 
                             display: true, 
                             position: 'bottom',
-                            labels: { usePointStyle: true, boxWidth: 12, padding: 20 }
+                            labels: { usePointStyle: true, boxWidth: 8, padding: 12, font: { size: 9 } }
                         }
                     },
                     scales: {
                         x: { stacked: true, display: false, grid: { display: false } },
-                        y: { stacked: true, grid: { display: false } }
-                    }
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: false, // MATIKAN ANIMASI BAWAAN CHART BAR
-                    plugins: {
-                        legend: { 
-                            display: true, 
-                            position: 'bottom',
-                            labels: { usePointStyle: true, boxWidth: 12, padding: 20 }
-                        }
-                    },
-                    scales: {
-                        x: { stacked: true, display: false, grid: { display: false } },
-                        y: { stacked: true, grid: { display: false } }
+                        y: { stacked: true, grid: { display: false }, ticks: { font: { size: 9 } } }
                     }
                 },
                 plugins: [{
@@ -1011,7 +995,7 @@
                     afterDatasetsDraw(chart) {
                         const { ctx } = chart;
                         ctx.save();
-                        ctx.font = 'bold 10px Inter, sans-serif';
+                        ctx.font = 'bold 9px Inter, sans-serif';
                         ctx.fillStyle = '#ffffff'; 
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
@@ -1035,20 +1019,16 @@
                                     
                                     if (element && val > 0) {
                                         const pct = ((val / totalBarValue) * 100).toFixed(0) + '%';
-                                        
-                                        // PERBAIKAN UTAMA: Gunakan Math.abs agar lebar piksel selalu positif & akurat
                                         const width = Math.abs(element.x - element.base);
                                         const centerX = element.base + ((element.x - element.base) / 2);
                                         const centerY = element.y;
 
-                                        // Toleransi diperkecil menjadi > 2 agar segmen pendek/awal tetap dipaksa muncul
                                         if (width > 2) {
                                             ctx.fillText(pct, centerX, centerY);
                                         }
                                     }
                                 }
                             });
-
                         }
                         ctx.restore();
                     }
@@ -1084,22 +1064,21 @@
 
             sortedOffices.forEach((item) => {
                 const tr = document.createElement('tr');
-                // KEMBALI INSTAN: Hanya class hover standar tanpa efek animasi CSS
                 tr.className = "bg-white border-b hover:bg-slate-50 transition-colors";
                 
                 let productCellsHtml = '';
                 distinctProducts.forEach(prod => {
-                    productCellsHtml += `<td class="px-4 py-3 text-right font-mono" style="color: ${productColors[prod]};">${formatNumber(item[prod] || 0)}</td>`;
+                    productCellsHtml += `<td class="px-3 py-2.5 text-right font-mono text-xs" style="color: ${productColors[prod]};">${formatNumber(item[prod] || 0)}</td>`;
                 });
 
                 tr.innerHTML = `
-                    <td class="px-4 py-3 font-medium">
-                        <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-filter text-[10px] opacity-40"></i> ${item.name}
+                    <td class="px-3 py-2.5 font-medium sticky-column">
+                        <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1 text-xs whitespace-nowrap">
+                            <i class="fa-solid fa-filter text-[9px] opacity-40"></i> ${item.name}
                         </a>
                     </td>
                     ${productCellsHtml}
-                    <td class="px-4 py-3 text-right font-mono font-bold text-slate-800">${formatNumber(item.total)}</td>
+                    <td class="px-3 py-2.5 text-right font-mono font-bold text-slate-800 text-xs">${formatNumber(item.total)}</td>
                 `;
                 fragment.appendChild(tr);
             });
@@ -1107,19 +1086,16 @@
             tbody.appendChild(fragment);
         }
 
-        // Fungsi helper untuk animasi pergerakan angka secara halus
         function animateNumber(element, targetValue, isPercentage = false) {
             if (!element) return;
             
             const startValue = 0;
-            const duration = 800; // Durasi animasi dalam milidetik (0.8 detik)
+            const duration = 800; 
             let startTime = null;
 
             function animation(currentTime) {
                 if (!startTime) startTime = currentTime;
                 const progress = Math.min((currentTime - startTime) / duration, 1);
-                
-                // Menggunakan Easing Function (EaseOutQuad) agar smooth di akhir animasi
                 const easeProgress = progress * (2 - progress);
                 const currentValue = startValue + easeProgress * (targetValue - startValue);
 
@@ -1132,7 +1108,6 @@
                 if (progress < 1) {
                     requestAnimationFrame(animation);
                 } else {
-                    // Pastikan angka akhir presisi sesuai target
                     if (isPercentage) {
                         element.innerText = targetValue.toFixed(1) + '%';
                     } else {
