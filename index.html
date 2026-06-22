@@ -45,14 +45,16 @@
         .collapsed .nav-header { justify-content: center; }
         .collapsed .logo-text { display: none; }
 
-        /* Kunci kolom pertama tabel saat digeser di mobile */
+        /* Kunci kolom pertama tabel saat digeser di mobile (FIXED NO CUT) */
         @media (max-width: 768px) {
             .sticky-column {
                 position: sticky;
                 left: 0;
-                background-color: #ffffff;
-                z-index: 10;
-                box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
+                background-color: #ffffff !important;
+                z-index: 20;
+                box-shadow: 4px 0 8px -4px rgba(0,0,0,0.15);
+                min-width: 140px; /* Memberikan ruang minimal agar nama cabang tidak terpotong/terlipat */
+                max-width: 180px;
             }
             th.sticky-column {
                 background-color: #f8fafc !important;
@@ -236,9 +238,10 @@
             <!-- SECTION DETAILED TABLE BREAKDOWN -->
             <div class="bg-white rounded-xl p-4 md:p-6 card-shadow">
                 <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-3">Detailed Breakdown by Product</h3>
-                <div class="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-                    <table class="w-full text-xs md:text-sm text-left text-slate-600 min-w-[600px]">
-                        <thead class="text-[10px] md:text-xs text-slate-700 uppercase bg-slate-50 sticky top-0">
+                <!-- Pembungkus disederhanakan agar tidak merusak koordinasi sticky left -->
+                <div class="overflow-x-auto w-full border border-slate-100 rounded-lg">
+                    <table class="w-full text-xs md:text-sm text-left text-slate-600 min-w-[650px] border-collapse">
+                        <thead class="text-[10px] md:text-xs text-slate-700 uppercase bg-slate-50 sticky top-0 z-30">
                             <tr id="dynamic-table-header-row"></tr>
                         </thead>
                         <tbody id="data-table-body" class="divide-y divide-slate-100"></tbody>
@@ -369,7 +372,8 @@
 
         function buildDynamicTableHeader() {
             const headerRow = document.getElementById('dynamic-table-header-row');
-            let headerHtml = `<th scope="col" class="px-3 py-2.5 rounded-tl-lg sticky-column shadow-sm">Branch</th>`;
+            // Tambahkan kelas sticky-column pada header kolom pertama
+            let headerHtml = `<th scope="col" class="px-3 py-2.5 rounded-tl-lg sticky-column text-left">Branch</th>`;
             
             distinctProducts.forEach(prod => {
                 headerHtml += `<th scope="col" class="px-3 py-2.5 text-right font-semibold" style="color: ${productColors[prod]};">${prod.replace(/_/g, ' ')}</th>`;
@@ -1078,10 +1082,11 @@
                     productCellsHtml += `<td class="px-3 py-2.5 text-right font-mono text-xs" style="color: ${productColors[prod]};">${formatNumber(item[prod] || 0)}</td>`;
                 });
 
+                // Tambahkan kelas 'break-words' atau 'whitespace-normal' agar nama panjang melipat ke bawah, bukan memotong card
                 tr.innerHTML = `
-                    <td class="px-3 py-2.5 font-medium sticky-column">
-                        <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1 text-xs whitespace-nowrap">
-                            <i class="fa-solid fa-filter text-[9px] opacity-40"></i> ${item.name}
+                    <td class="px-3 py-2.5 font-medium sticky-column text-left">
+                        <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1 text-xs whitespace-normal break-words header-link">
+                            <i class="fa-solid fa-filter text-[9px] opacity-40 shrink-0"></i> <span>${item.name}</span>
                         </a>
                     </td>
                     ${productCellsHtml}
