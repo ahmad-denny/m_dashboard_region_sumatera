@@ -45,7 +45,7 @@
         .collapsed .nav-header { justify-content: center; }
         .collapsed .logo-text { display: none; }
 
-        /* Kunci kolom pertama tabel saat digeser di mobile (FIXED NO CUT) */
+        /* Kunci kolom pertama tabel saat digeser horizontal (Nama Branch Dipotong / Truncate) */
         @media (max-width: 768px) {
             .sticky-column {
                 position: sticky;
@@ -53,10 +53,11 @@
                 background-color: #ffffff !important;
                 z-index: 10;
                 box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
-                min-width: 100px;
-                max-width: 120px;
-                white-space: normal !important;
-                word-break: break-words;
+                min-width: 90px;
+                max-width: 105px;
+                white-space: nowrap !important;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             th.sticky-column {
                 background-color: #f8fafc !important;
@@ -64,7 +65,7 @@
         }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen flex overflow-y-auto relative">
+<body class="text-slate-800 h-screen flex overflow-hidden relative">
 
     <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 hidden md:hidden"></div>
 
@@ -99,9 +100,9 @@
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col min-h-screen w-full relative overflow-y-auto bg-[#f8fafc]" id="main-content">
+    <main class="flex-1 flex flex-col h-screen w-full relative overflow-y-auto bg-[#f8fafc]" id="main-content">
         
-        <header class="bg-white border-b border-slate-200 flex flex-col justify-between px-4 md:px-6 shrink-0 pt-3 relative z-20">
+        <header class="bg-white border-b border-slate-200 flex flex-col justify-between px-4 md:px-6 shrink-0 pt-3 sticky top-0 z-30 shadow-sm">
             <div class="flex items-center justify-between w-full pb-2">
                 <div class="flex items-center gap-3">
                     <button id="mobile-menu-btn" class="md:hidden text-slate-600 hover:text-slate-900 p-1 focus:outline-none">
@@ -125,73 +126,73 @@
             <div class="flex gap-1 border-b border-slate-100 -mx-4 px-4 overflow-x-auto whitespace-nowrap scrollbar-none" id="csv-tabs-container"></div>
         </header>
 
-        <div class="p-4 md:p-6 space-y-6">
-            
-            <div class="bg-[#f8fafc] pt-2 pb-1">
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-                    
-                    <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-indigo-500 min-w-0">
-                        <div class="flex justify-between items-start gap-1">
-                            <div class="min-w-0 flex-1">
-                                <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-total-label">Total Outstanding</p>
-                                <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-total">0</h3>
-                            </div>                        
-                            <div class="p-1.5 bg-indigo-50 rounded-lg text-indigo-600 text-xs md:text-sm shrink-0">
-                                <i class="fa-solid fa-calculator"></i>
-                            </div>
-                        </div>
-                        <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px]">
-                            <span class="text-slate-400 truncate">Latest Month: <i id="kpi-latest-lbl" class="not-italic font-medium text-slate-600">-</i></span>
-                        </div>                    
-                    </div>
-
-                    <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-emerald-500 min-w-0">
-                        <div class="flex justify-between items-start gap-1">
-                            <div class="min-w-0 flex-1">
-                                <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-segment1-label">Segment 1</p>
-                                <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-segment1">0</h3>
-                            </div>
-                            <div class="p-1.5 bg-emerald-50 rounded-lg text-emerald-600 text-xs md:text-sm shrink-0">
-                                <i class="fa-solid fa-layer-group"></i>
-                            </div>
-                        </div>
-                        <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px] min-w-0 w-full">
-                            <span class="text-slate-400 truncate" id="kpi-segment1-pct">0%</span>
+        <div class="sticky top-[93px] md:top-[97px] z-20 bg-[#f8fafc] px-4 md:px-6 pt-3 pb-3 border-b border-slate-200/60 shadow-sm">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+                
+                <div class="bg-white rounded-xl p-3 md:p-4 card-shadow border-l-4 border-indigo-500 min-w-0">
+                    <div class="flex justify-between items-start gap-1">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-total-label">Total Outstanding</p>
+                            <h3 class="text-sm md:text-xl font-bold text-slate-800 mt-0.5 truncate" id="kpi-total">0</h3>
+                        </div>                        
+                        <div class="p-1 bg-indigo-50 rounded text-indigo-600 text-xs shrink-0">
+                            <i class="fa-solid fa-calculator"></i>
                         </div>
                     </div>
+                    <div class="mt-1 flex items-center text-[9px] md:text-[10px]">
+                        <span class="text-slate-400 truncate">Latest Month: <i id="kpi-latest-lbl" class="not-italic font-medium text-slate-600">-</i></span>
+                    </div>                    
+                </div>
 
-                    <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-amber-500 min-w-0">
-                        <div class="flex justify-between items-start gap-1">
-                            <div class="min-w-0 flex-1">
-                                <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-segment2-label">Segment 2</p>
-                                <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-segment2">0</h3>
-                            </div>
-                            <div class="p-1.5 bg-amber-50 rounded-lg text-amber-600 text-xs md:text-sm shrink-0">
-                                <i class="fa-solid fa-boxes-stacked"></i>
-                            </div>
+                <div class="bg-white rounded-xl p-3 md:p-4 card-shadow border-l-4 border-emerald-500 min-w-0">
+                    <div class="flex justify-between items-start gap-1">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-segment1-label">Segment 1</p>
+                            <h3 class="text-sm md:text-xl font-bold text-slate-800 mt-0.5 truncate" id="kpi-segment1">0</h3>
                         </div>
-                        <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px] min-w-0 w-full">
-                            <span class="text-slate-400 truncate" id="kpi-segment2-pct">0%</span>
+                        <div class="p-1 bg-emerald-50 rounded text-emerald-600 text-xs shrink-0">
+                            <i class="fa-solid fa-layer-group"></i>
                         </div>
                     </div>
+                    <div class="mt-1 flex items-center text-[9px] md:text-[10px] min-w-0 w-full">
+                        <span class="text-slate-400 truncate" id="kpi-segment1-pct">0%</span>
+                    </div>
+                </div>
 
-                    <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-blue-500 min-w-0">
-                        <div class="flex justify-between items-start gap-1">
-                            <div class="min-w-0 flex-1">
-                                <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate">Top Dominant Product</p>
-                                <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-top-product">-</h3>
-                            </div>
-                            <div class="p-1.5 bg-blue-50 rounded-lg text-blue-600 text-xs md:text-sm shrink-0">
-                                <i class="fa-solid fa-trophy"></i>
-                            </div>
+                <div class="bg-white rounded-xl p-3 md:p-4 card-shadow border-l-4 border-amber-500 min-w-0">
+                    <div class="flex justify-between items-start gap-1">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-segment2-label">Segment 2</p>
+                            <h3 class="text-sm md:text-xl font-bold text-slate-800 mt-0.5 truncate" id="kpi-segment2">0</h3>
                         </div>
-                        <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px]">
-                            <span class="text-slate-400 italic truncate">By Selected Month Volume</span>
+                        <div class="p-1 bg-amber-50 rounded text-amber-600 text-xs shrink-0">
+                            <i class="fa-solid fa-boxes-stacked"></i>
                         </div>
+                    </div>
+                    <div class="mt-1 flex items-center text-[9px] md:text-[10px] min-w-0 w-full">
+                        <span class="text-slate-400 truncate" id="kpi-segment2-pct">0%</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-3 md:p-4 card-shadow border-l-4 border-blue-500 min-w-0">
+                    <div class="flex justify-between items-start gap-1">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate">Top Dominant Product</p>
+                            <h3 class="text-sm md:text-xl font-bold text-slate-800 mt-0.5 truncate" id="kpi-top-product">-</h3>
+                        </div>
+                        <div class="p-1 bg-blue-50 rounded text-blue-600 text-xs shrink-0">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                    </div>
+                    <div class="mt-1 flex items-center text-[9px] md:text-[10px]">
+                        <span class="text-slate-400 italic truncate">By Volume Month</span>
                     </div>
                 </div>
             </div>
+        </div>
 
+        <div class="p-4 md:p-6 space-y-6">
+            
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                 <div class="lg:col-span-2 bg-white rounded-xl p-4 md:p-6 card-shadow flex flex-col justify-between">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -256,7 +257,7 @@
         const csvFilesConfig = [
             { name: "Financing", file: "pembiayaan.csv", icon: "fa-hand-holding-dollar" },
             { name: "Funding", file: "dana.csv", icon: "fa-vault" },
-            { name: "Hajj", file: "haji.csv", icon: "fa-kaaba" }
+            { name: "Hajii", file: "haji.csv", icon: "fa-kaaba" }
         ];
 
         let currentActiveFileIndex = 0;
@@ -269,7 +270,6 @@
         let lastMonth = '';
         let activeTimelineMonths = 0; 
 
-        // URUTAN FILTER LOGIS: CO-BRANCH -> OFFICE (Branch) -> PRODUCT -> GROUP
         const filterColumns = ['CO-BRANCH', 'OFFICE', 'PRODUCT', 'GROUP'];
         
         let distinctProducts = [];
@@ -367,10 +367,10 @@
             document.getElementById('kpi-latest-lbl').innerText = lastMonth;
         }
 
-        // PERBAIKAN HEADER TABLE: KECIL, KATA MELIPAT OTOMATIS MENJADI 2 BARIS (WHITESPACE-NORMAL)
+        // BAGIAN NAMA BRANCH DISUNTING MAX-WIDTH & TRUNCATE AGAR TIDAK MELIPAT KE BAWAH
         function buildDynamicTableHeader() {
             const headerRow = document.getElementById('dynamic-table-header-row');
-            let headerHtml = `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs font-bold bg-slate-50 sticky-column text-left max-w-[100px] whitespace-normal break-words">Branch</th>`;
+            let headerHtml = `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs font-bold bg-slate-50 sticky-column text-left max-w-[90px] md:max-w-[105px] truncate">Branch</th>`;
             
             distinctProducts.forEach(prod => {
                 headerHtml += `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs text-right font-bold whitespace-normal break-words max-w-[80px]" style="color: ${productColors[prod]};">${prod.replace(/_/g, ' ')}</th>`;
@@ -411,6 +411,7 @@
             }
         }
 
+        // MODIFIKASI SIDEBAR MOBILE: PROSES FILTER BARU BERJALAN SAAT PANEL SISI DITUTUP (KLIK X ATAU BACKDROP)
         function initMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
@@ -425,6 +426,8 @@
             function closeMobileNav() {
                 sidebar.classList.add('-translate-x-full');
                 backdrop.classList.add('hidden');
+                // EKSEKUSI FILTER HANYA SAAT TOMBOL DI MOBILE DI-CLOSE
+                applyFilters();
             }
 
             if(openBtn) openBtn.addEventListener('click', openMobileNav);
@@ -469,7 +472,6 @@
                 
                 const label = document.createElement('label');
                 label.className = "block text-[10px] font-medium text-slate-400 mb-1 uppercase filter-label tracking-wider";
-                // Penyesuaian nama label agar pengguna tidak bingung
                 label.innerText = col === 'OFFICE' ? 'BRANCH (OFFICE)' : col;
                 
                 const select = document.createElement('select');
@@ -483,9 +485,9 @@
 
                 select.addEventListener('change', () => {
                     handleFilterChange();
-                    if(window.innerWidth < 768) {
-                        document.getElementById('sidebar').classList.add('-translate-x-full');
-                        document.getElementById('sidebar-backdrop').classList.add('hidden');
+                    // Jika di desktop/web langsung update otomatis
+                    if(window.innerWidth >= 768) {
+                        applyFilters();
                     }
                 });
 
@@ -523,7 +525,6 @@
             else { select.value = "ALL"; }
         }
 
-        // FIX LOGIKA TERBALIK: CO-BRANCH MEMFILTER KONTEN OFFICE (BRANCH)
         function handleFilterChange() {
             const coBranchCleanVal = document.getElementById('filter-CO-BRANCH').value;
             const officeCleanVal = document.getElementById('filter-OFFICE').value;
@@ -540,11 +541,8 @@
             }
             populateFilterOptions('PRODUCT', dataForProduct);
             populateFilterOptions('GROUP', dataForProduct);
-
-            applyFilters();
         }
 
-        // Klik nama Branch di tabel akan mengisi filter OFFICE (Branch) secara tepat
         window.filterByBranchLink = function(branchCleanName) {
             document.getElementById('filter-OFFICE').value = branchCleanName;
             applyFilters();
@@ -1045,7 +1043,7 @@
             });
         }
 
-        // BARIS TABEL DIKECILKAN AGAR SEIMBANG DENGAN HEADER MULTI-LINE NYA
+        // BADAN TABEL: NAMA BRANCH DIPAKSA SATU BARIS DAN DIPOTONG (TRUNCATE) JIKA TERLALU PANJANG
         function updateTable() {
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = '';
@@ -1082,9 +1080,9 @@
                 });
 
                 tr.innerHTML = `
-                    <td class="px-2 py-2 font-medium sticky-column text-left max-w-[100px]">
-                        <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1 text-[11px] whitespace-normal break-words header-link">
-                            <i class="fa-solid fa-filter text-[8px] opacity-40 shrink-0"></i> <span>${item.name}</span>
+                    <td class="px-2 py-2 font-medium sticky-column text-left max-w-[90px] md:max-w-[105px] truncate" title="${item.name}">
+                        <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold block text-[11px] truncate header-link">
+                            <i class="fa-solid fa-filter text-[8px] opacity-40 mr-0.5"></i><span>${item.name}</span>
                         </a>
                     </td>
                     ${productCellsHtml}
@@ -1100,7 +1098,7 @@
             if (!element) return;
             
             const startValue = 0;
-            const duration = 800; 
+            const duration = 600; 
             let startTime = null;
 
             function animation(currentTime) {
