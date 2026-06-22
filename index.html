@@ -45,7 +45,7 @@
         .collapsed .nav-header { justify-content: center; }
         .collapsed .logo-text { display: none; }
 
-        /* Kunci kolom pertama tabel saat digeser horizontal (Nama Branch Dipotong / Truncate) */
+        /* Kunci kolom pertama tabel saat digeser horizontal (Lebih Lebar & Rapi) */
         @media (max-width: 768px) {
             .sticky-column {
                 position: sticky;
@@ -53,8 +53,8 @@
                 background-color: #ffffff !important;
                 z-index: 10;
                 box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
-                min-width: 90px;
-                max-width: 105px;
+                min-width: 130px;  /* <-- Diperlebar dari 90px */
+                max-width: 150px;  /* <-- Diperlebar dari 105px */
                 white-space: nowrap !important;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -370,7 +370,8 @@
         // BAGIAN NAMA BRANCH DISUNTING MAX-WIDTH & TRUNCATE AGAR TIDAK MELIPAT KE BAWAH
         function buildDynamicTableHeader() {
             const headerRow = document.getElementById('dynamic-table-header-row');
-            let headerHtml = `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs font-bold bg-slate-50 sticky-column text-left max-w-[90px] md:max-w-[105px] truncate">Branch</th>`;
+            // Ubah baris ini agar di desktop (md) ukurannya bebas/auto melebar
+            let headerHtml = `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs font-bold bg-slate-50 sticky-column text-left max-w-[130px] md:max-w-none truncate">Branch</th>`;
             
             distinctProducts.forEach(prod => {
                 headerHtml += `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs text-right font-bold whitespace-normal break-words max-w-[80px]" style="color: ${productColors[prod]};">${prod.replace(/_/g, ' ')}</th>`;
@@ -378,7 +379,7 @@
             
             headerHtml += `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs text-right font-bold bg-slate-50 max-w-[90px] whitespace-normal break-words">Total Amount</th>`;
             headerRow.innerHTML = headerHtml;
-
+            
             const compSubLabels = document.getElementById('dynamic-group-pct-labels');
             if (compSubLabels) {
                 compSubLabels.innerHTML = groupLabels.map((grp, i) => `
@@ -1079,16 +1080,16 @@
                     productCellsHtml += `<td class="px-2 py-2 text-right font-mono text-[11px] max-w-[80px] truncate" style="color: ${productColors[prod]};">${formatNumber(item[prod] || 0)}</td>`;
                 });
 
+                // Cari bagian tr.innerHTML di dalam fungsi updateTable()
                 tr.innerHTML = `
-                    <td class="px-2 py-2 font-medium sticky-column text-left max-w-[90px] md:max-w-[105px] truncate" title="${item.name}">
+                    <td class="px-2 py-2 font-medium sticky-column text-left max-w-[130px] md:max-w-none truncate" title="${item.name}">
                         <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold block text-[11px] truncate header-link">
                             <i class="fa-solid fa-filter text-[8px] opacity-40 mr-0.5"></i><span>${item.name}</span>
                         </a>
                     </td>
                     ${productCellsHtml}
                     <td class="px-2 py-2 text-right font-mono font-bold text-slate-800 text-[11px] max-w-[90px] truncate">${formatNumber(item.total)}</td>
-                `;
-                fragment.appendChild(tr);
+                `;                fragment.appendChild(tr);
             });
 
             tbody.appendChild(fragment);
