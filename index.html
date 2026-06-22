@@ -122,71 +122,76 @@
 
         <div class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth">
             
-            <!-- SESUDAH -->
+            <!-- SECTION KPI: FIXED 2 KOLOM 2 BARIS DI MOBILE, 4 KOLOM DI SEJAJAR DESKTOP -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-indigo-500">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" id="kpi-total-label">Total Outstanding</p>
-                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1" id="kpi-total">0</h3>
+                
+                <!-- KPI 1 -->
+                <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-indigo-500 min-w-0">
+                    <div class="flex justify-between items-start gap-1">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-total-label">Total Outstanding</p>
+                            <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-total">0</h3>
                         </div>                        
-                        <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 text-sm">
+                        <div class="p-1.5 bg-indigo-50 rounded-lg text-indigo-600 text-xs md:text-sm shrink-0">
                             <i class="fa-solid fa-calculator"></i>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-center text-[11px]">
-                        <span class="text-slate-400">Latest Month: <i id="kpi-latest-lbl" class="not-italic font-medium text-slate-600">-</i></span>
+                    <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px]">
+                        <span class="text-slate-400 truncate">Latest Month: <i id="kpi-latest-lbl" class="not-italic font-medium text-slate-600">-</i></span>
                     </div>                    
                 </div>
 
-                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-emerald-500">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" id="kpi-segment1-label">Segment 1</p>
-                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1" id="kpi-segment1">0</h3>
+                <!-- KPI 2 -->
+                <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-emerald-500 min-w-0">
+                    <div class="flex justify-between items-start gap-1">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-segment1-label">Segment 1</p>
+                            <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-segment1">0</h3>
                         </div>
-                        <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600 text-sm">
+                        <div class="p-1.5 bg-emerald-50 rounded-lg text-emerald-600 text-xs md:text-sm shrink-0">
                             <i class="fa-solid fa-layer-group"></i>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-center text-[11px]">
-                        <span class="text-slate-400">Contribution: <i id="kpi-segment1-pct" class="font-semibold text-emerald-600 not-italic">0%</i></span>
+                    <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px] min-w-0 w-full">
+                        <span class="text-slate-400 truncate" id="kpi-segment1-pct">0%</span>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-amber-500">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" id="kpi-segment2-label">Segment 2</p>
-                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1" id="kpi-segment2">0</h3>
+                <!-- KPI 3 -->
+                <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-amber-500 min-w-0">
+                    <div class="flex justify-between items-start gap-1">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-segment2-label">Segment 2</p>
+                            <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-segment2">0</h3>
                         </div>
-                        <div class="p-2 bg-amber-50 rounded-lg text-amber-600 text-sm">
+                        <div class="p-1.5 bg-amber-50 rounded-lg text-amber-600 text-xs md:text-sm shrink-0">
                             <i class="fa-solid fa-boxes-stacked"></i>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-center text-[11px]">
-                        <span class="text-slate-400">Contribution: <i id="kpi-segment2-pct" class="font-semibold text-amber-600 not-italic">0%</i></span>
+                    <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px] min-w-0 w-full">
+                        <span class="text-slate-400 truncate" id="kpi-segment2-pct">0%</span>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-blue-500">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Top Dominant Product</p>
-                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1 truncate max-w-[160px] sm:max-w-none" id="kpi-top-product">-</h3>
+                <!-- KPI 4 -->
+                <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-blue-500 min-w-0">
+                    <div class="flex justify-between items-start gap-1">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate">Top Dominant Product</p>
+                            <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-top-product">-</h3>
                         </div>
-                        <div class="p-2 bg-blue-50 rounded-lg text-blue-600 text-sm">
+                        <div class="p-1.5 bg-blue-50 rounded-lg text-blue-600 text-xs md:text-sm shrink-0">
                             <i class="fa-solid fa-trophy"></i>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-center text-[11px]">
-                        <span class="text-slate-400"><i>By Selected Month Volume</i></span>
+                    <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px]">
+                        <span class="text-slate-400 italic truncate">By Selected Month Volume</span>
                     </div>
                 </div>
             </div>
 
-            <!-- SEBELUM -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <!-- SECTION CHARTS & TRENDS -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                 <div class="lg:col-span-2 bg-white rounded-xl p-4 md:p-6 card-shadow flex flex-col justify-between">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                         <h3 class="font-semibold text-sm md:text-base text-slate-700" id="trend-title">Performance Trend</h3>
@@ -211,6 +216,7 @@
                 </div>
             </div>
 
+            <!-- SECTION TOP BRANCHES BAR CHARTS -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 <div class="bg-white rounded-xl p-4 md:p-6 card-shadow">
                     <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-4">Top 5 CO-Branches by Volume</h3>
@@ -227,6 +233,7 @@
                 </div>
             </div>
 
+            <!-- SECTION DETAILED TABLE BREAKDOWN -->
             <div class="bg-white rounded-xl p-4 md:p-6 card-shadow">
                 <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-3">Detailed Breakdown by Product</h3>
                 <div class="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
@@ -284,7 +291,7 @@
             buildCSVTabs(); 
             loadSelectedCSV(currentActiveFileIndex); 
             initSidebarToggle();
-            initMobileSidebar(); // Pemicu kontrol layar sentuh HP
+            initMobileSidebar(); 
         });
 
         function buildCSVTabs() {
@@ -361,7 +368,6 @@
 
         function buildDynamicTableHeader() {
             const headerRow = document.getElementById('dynamic-table-header-row');
-            // Menambahkan class 'sticky-column' agar nama cabang tetap diam saat di-scroll ke kanan di layar HP
             let headerHtml = `<th scope="col" class="px-3 py-2.5 rounded-tl-lg sticky-column shadow-sm">Branch</th>`;
             
             distinctProducts.forEach(prod => {
@@ -403,7 +409,6 @@
             }
         }
 
-        // Handler Khusus Drawer Navigasi Mobile
         function initMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
@@ -477,7 +482,6 @@
 
                 select.addEventListener('change', () => {
                     handleFilterChange();
-                    // Otomatis tutup drawer di mobile begitu filter dipilih
                     if(window.innerWidth < 768) {
                         document.getElementById('sidebar').classList.add('-translate-x-full');
                         document.getElementById('sidebar-backdrop').classList.add('hidden');
@@ -642,14 +646,14 @@
             document.getElementById('kpi-segment1-label').innerText = g1 ? `Total ${g1}` : 'Segment 1';
             animateNumber(document.getElementById('kpi-segment1'), g1 ? groupTotals[g1] : 0);
             if (document.getElementById('kpi-segment1-pct')) {
-                document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-g1-pct">0%</span> dari total`;
+                document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-g1-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
                 animateNumber(document.getElementById('anim-g1-pct'), g1Pct, true);
             }
 
             document.getElementById('kpi-segment2-label').innerText = g2 ? `Total ${g2}` : 'Segment 2';
             animateNumber(document.getElementById('kpi-segment2'), g2 ? groupTotals[g2] : 0);
             if (document.getElementById('kpi-segment2-pct')) {
-                document.getElementById('kpi-segment2-pct').innerHTML = `<span id="anim-g2-pct">0%</span> dari total`;
+                document.getElementById('kpi-segment2-pct').innerHTML = `<span id="anim-g2-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
                 animateNumber(document.getElementById('anim-g2-pct'), g2Pct, true);
             }
 
@@ -704,7 +708,7 @@
                     backgroundColor: getTransparentColor(productColors[prod]), 
                     borderWidth: 2,
                     tension: 0.3,
-                    pointRadius: window.innerWidth < 768 ? 2 : 4, // Perkecil titik di HP
+                    pointRadius: window.innerWidth < 768 ? 2 : 4, 
                     pointBackgroundColor: '#ffffff', 
                     pointBorderColor: productColors[prod],
                     pointBorderWidth: 1.5
