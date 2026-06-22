@@ -45,17 +45,22 @@
         .collapsed .nav-header { justify-content: center; }
         .collapsed .logo-text { display: none; }
 
-        /* Kunci kolom pertama tabel saat digeser di mobile */
+/* Kunci kolom pertama tabel saat digeser di mobile */
         @media (max-width: 768px) {
             .sticky-column {
                 position: sticky;
                 left: 0;
                 background-color: #ffffff;
                 z-index: 10;
-                box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
+                box-shadow: 2px 0 4px -2px rgba(0,0,0,0.1);
             }
             th.sticky-column {
                 background-color: #f8fafc !important;
+            }
+            /* Memaksa pembungkus tabel agar tidak memunculkan scrollbar jika ruangnya sudah cukup */
+            th, td {
+                padding-left: 0.375rem !important;  /* px-1.5 */
+                padding-right: 0.375rem !important; /* px-1.5 */
             }
         }
     </style>
@@ -1047,6 +1052,18 @@
                 }]
             });
         }
+// Fungsi baru khusus untuk memformat angka tabel menjadi satuan Milyar (M)
+        function formatNumberTable(num) {
+            if (num === 0) return '0';
+            // Dibagi 1 Milyar, ambil 1 angka di belakang koma
+            const dalamMilyar = num / 1000000000;
+            
+            // Jika hasilnya bulat (misal 15.0), hilangkan .0 nya menjadi 15 M saja
+            if (dalamMilyar % 1 === 0) {
+                return new Intl.NumberFormat('id-ID').format(dalamMilyar) + ' M';
+            }
+            return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(dalamMilyar) + ' M';
+        }
 
         function updateTable() {
             const tbody = document.getElementById('data-table-body');
@@ -1080,28 +1097,26 @@
                 
                 let productCellsHtml = '';
                 distinctProducts.forEach(prod => {
-                    // MENGGUNAKAN formatToMilyar UNTUK NILAI PRODUK
-                    productCellsHtml += `<td class="px-2 py-2.5 text-right font-mono text-xs whitespace-nowrap" style="color: ${productColors[prod]};">${formatToMilyar(item[prod] || 0)}</td>`;
+                    // Menggunakan formatNumberTable agar nominal dikonversi ke Milyar
+                    productCellsHtml += `<td class="px-1.5 md:px-3 py-2 text-right font-mono text-[11px] md:text-xs" style="color: ${productColors[prod]};">${formatNumberTable(item[prod] || 0)}</td>`;
                 });
 
                 tr.innerHTML = `
-                    <td class="px-2 py-2.5 font-medium sticky-column max-w-[100px]">
-                        <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" 
-                           title="${item.name}" 
-                           class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1 text-xs truncate">
-                            <i class="fa-solid fa-filter text-[9px] opacity-40 shrink-0"></i> 
-                            <span class="truncate">${item.name}</span>
+                    <td class="px-2 py-2 font-medium sticky-column text-[11px] md:text-xs max-w-[85px] md:max-w-none truncate">
+                        <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-0.5 whitespace-nowrap truncate" title="${item.name}">
+                            <i class="fa-solid fa-filter text-[8px] opacity-30 shrink-0"></i> ${item.name}
                         </a>
                     </td>
                     ${productCellsHtml}
-                    <td class="px-2 py-2.5 text-right font-mono font-bold text-slate-800 text-xs whitespace-nowrap">${formatToMilyar(item.total)}</td>
+                    <td class="px-2 py-2 text-right font-mono font-bold text-slate-800 text-[11px] md:text-xs">${formatNumberTable(item.total)}</td>
                 `;
                 fragment.appendChild(tr);
             });
 
             tbody.appendChild(fragment);
         }
-function animateNumber(element, targetValue, isPercentage = false) {
+        
+        function animateNumber(element, targetValue, isPercentage = false) {
             if (!element) return;
             
             const startValue = 0;
