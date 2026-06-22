@@ -45,16 +45,34 @@
         .collapsed .nav-header { justify-content: center; }
         .collapsed .logo-text { display: none; }
 
-        /* Kunci kolom pertama tabel saat digeser di mobile */
+        /* PERBAIKAN 2 & 3: Kunci Kolom Branch dan Total di Mobile */
         @media (max-width: 768px) {
-            .sticky-column {
+            .sticky-branch {
                 position: sticky;
                 left: 0;
                 background-color: #ffffff;
-                z-index: 10;
-                box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
+                z-index: 12;
+                box-shadow: 2px 0 4px -2px rgba(0,0,0,0.15);
+                max-width: 110px !important; /* Perkecil lebar kolom branch */
+                min-width: 110px !important;
+                width: 110px !important;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
-            th.sticky-column {
+            th.sticky-branch {
+                background-color: #f8fafc !important;
+            }
+            
+            .sticky-total {
+                position: sticky;
+                left: 110px; /* Menempel tepat setelah kolom branch */
+                background-color: #fdfdfd;
+                z-index: 11;
+                box-shadow: 3px 0 5px -2px rgba(0,0,0,0.15);
+                min-width: 95px !important;
+                width: 95px !important;
+            }
+            th.sticky-total {
                 background-color: #f8fafc !important;
             }
         }
@@ -122,64 +140,64 @@
 
         <div class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth">
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-indigo-500">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+                <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-indigo-500">
                     <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" id="kpi-total-label">Total Outstanding</p>
-                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1" id="kpi-total">0</h3>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-total-label">Total Outstanding</p>
+                            <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-total">0</h3>
                         </div>                        
-                        <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600 text-sm">
+                        <div class="p-1.5 bg-indigo-50 rounded-lg text-indigo-600 text-xs md:text-sm ml-1 shrink-0">
                             <i class="fa-solid fa-calculator"></i>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-center text-[11px]">
-                        <span class="text-slate-400">Latest Month: <i id="kpi-latest-lbl" class="not-italic font-medium text-slate-600">-</i></span>
+                    <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px]">
+                        <span class="text-slate-400 truncate">Month: <i id="kpi-latest-lbl" class="not-italic font-medium text-slate-600">-</i></span>
                     </div>                    
                 </div>
 
-                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-emerald-500">
+                <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-emerald-500">
                     <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" id="kpi-segment1-label">Segment 1</p>
-                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1" id="kpi-segment1">0</h3>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-segment1-label">Segment 1</p>
+                            <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-segment1">0</h3>
                         </div>
-                        <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600 text-sm">
+                        <div class="p-1.5 bg-emerald-50 rounded-lg text-emerald-600 text-xs md:text-sm ml-1 shrink-0">
                             <i class="fa-solid fa-layer-group"></i>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-center text-[11px]">
-                        <span class="text-slate-400">Contribution: <i id="kpi-segment1-pct" class="font-semibold text-emerald-600 not-italic">0%</i></span>
+                    <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px]">
+                        <span class="text-slate-400 truncate"><i id="kpi-segment1-pct" class="font-semibold text-emerald-600 not-italic">0%</i></span>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-amber-500">
+                <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-amber-500">
                     <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" id="kpi-segment2-label">Segment 2</p>
-                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1" id="kpi-segment2">0</h3>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-segment2-label">Segment 2</p>
+                            <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-segment2">0</h3>
                         </div>
-                        <div class="p-2 bg-amber-50 rounded-lg text-amber-600 text-sm">
+                        <div class="p-1.5 bg-amber-50 rounded-lg text-amber-600 text-xs md:text-sm ml-1 shrink-0">
                             <i class="fa-solid fa-boxes-stacked"></i>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-center text-[11px]">
-                        <span class="text-slate-400">Contribution: <i id="kpi-segment2-pct" class="font-semibold text-amber-600 not-italic">0%</i></span>
+                    <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px]">
+                        <span class="text-slate-400 truncate"><i id="kpi-segment2-pct" class="font-semibold text-amber-600 not-italic">0%</i></span>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl p-4 md:p-5 card-shadow border-l-4 border-blue-500">
+                <div class="bg-white rounded-xl p-3 md:p-5 card-shadow border-l-4 border-blue-500">
                     <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Top Dominant Product</p>
-                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 mt-1 truncate max-w-[160px] sm:max-w-none" id="kpi-top-product">-</h3>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate">Dominant</p>
+                            <h3 class="text-base md:text-2xl font-bold text-slate-800 mt-0.5 md:mt-1 truncate" id="kpi-top-product">-</h3>
                         </div>
-                        <div class="p-2 bg-blue-50 rounded-lg text-blue-600 text-sm">
+                        <div class="p-1.5 bg-blue-50 rounded-lg text-blue-600 text-xs md:text-sm ml-1 shrink-0">
                             <i class="fa-solid fa-trophy"></i>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-center text-[11px]">
-                        <span class="text-slate-400"><i>By Selected Month Volume</i></span>
+                    <div class="mt-2 md:mt-3 flex items-center text-[9px] md:text-[11px]">
+                        <span class="text-slate-400 truncate"><i>By Volume</i></span>
                     </div>
                 </div>
             </div>
@@ -228,7 +246,7 @@
             <div class="bg-white rounded-xl p-4 md:p-6 card-shadow">
                 <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-3">Detailed Breakdown by Product</h3>
                 <div class="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-                    <table class="w-full text-xs md:text-sm text-left text-slate-600 min-w-[600px]">
+                    <table class="w-full text-xs md:text-sm text-left text-slate-600 min-w-[650px] table-fixed">
                         <thead class="text-[10px] md:text-xs text-slate-700 uppercase bg-slate-50 sticky top-0">
                             <tr id="dynamic-table-header-row"></tr>
                         </thead>
@@ -282,7 +300,7 @@
             buildCSVTabs(); 
             loadSelectedCSV(currentActiveFileIndex); 
             initSidebarToggle();
-            initMobileSidebar(); // Pemicu kontrol layar sentuh HP
+            initMobileSidebar();
         });
 
         function buildCSVTabs() {
@@ -357,16 +375,20 @@
             document.getElementById('kpi-latest-lbl').innerText = lastMonth;
         }
 
+        // PERBAIKAN 2 & 3: Modifikasi Urutan Kolom Header (Branch -> Total -> Produk) & Setup Class Freeze
         function buildDynamicTableHeader() {
             const headerRow = document.getElementById('dynamic-table-header-row');
-            // Menambahkan class 'sticky-column' agar nama cabang tetap diam saat di-scroll ke kanan di layar HP
-            let headerHtml = `<th scope="col" class="px-3 py-2.5 rounded-tl-lg sticky-column shadow-sm">Branch</th>`;
+            
+            // Kolom 1 (Branch) Di-freeze & Kolom 2 (Total) Di-freeze tepat di sebelahnya
+            let headerHtml = `
+                <th scope="col" class="px-2 py-2.5 rounded-tl-lg sticky-branch shadow-sm md:w-44 text-left">Branch</th>
+                <th scope="col" class="px-3 py-2.5 text-right font-bold bg-slate-50 sticky-total shadow-sm md:w-36">Total Amount</th>
+            `;
             
             distinctProducts.forEach(prod => {
-                headerHtml += `<th scope="col" class="px-3 py-2.5 text-right font-semibold" style="color: ${productColors[prod]};">${prod.replace(/_/g, ' ')}</th>`;
+                headerHtml += `<th scope="col" class="px-3 py-2.5 text-right font-semibold md:w-32" style="color: ${productColors[prod]};">${prod.replace(/_/g, ' ')}</th>`;
             });
             
-            headerHtml += `<th scope="col" class="px-3 py-2.5 text-right rounded-tr-lg">Total Amount</th>`;
             headerRow.innerHTML = headerHtml;
 
             const compSubLabels = document.getElementById('dynamic-group-pct-labels');
@@ -401,7 +423,6 @@
             }
         }
 
-        // Handler Khusus Drawer Navigasi Mobile
         function initMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
@@ -475,7 +496,6 @@
 
                 select.addEventListener('change', () => {
                     handleFilterChange();
-                    // Otomatis tutup drawer di mobile begitu filter dipilih
                     if(window.innerWidth < 768) {
                         document.getElementById('sidebar').classList.add('-translate-x-full');
                         document.getElementById('sidebar-backdrop').classList.add('hidden');
@@ -637,17 +657,17 @@
             const g1Pct = grandTotal ? ((groupTotals[g1] / grandTotal) * 100) : 0;
             const g2Pct = grandTotal ? ((groupTotals[g2] / grandTotal) * 100) : 0;
 
-            document.getElementById('kpi-segment1-label').innerText = g1 ? `Total ${g1}` : 'Segment 1';
+            document.getElementById('kpi-segment1-label').innerText = g1 ? `${g1}` : 'Segment 1';
             animateNumber(document.getElementById('kpi-segment1'), g1 ? groupTotals[g1] : 0);
             if (document.getElementById('kpi-segment1-pct')) {
-                document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-g1-pct">0%</span> dari total`;
+                document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-g1-pct">0%</span>`;
                 animateNumber(document.getElementById('anim-g1-pct'), g1Pct, true);
             }
 
-            document.getElementById('kpi-segment2-label').innerText = g2 ? `Total ${g2}` : 'Segment 2';
+            document.getElementById('kpi-segment2-label').innerText = g2 ? `${g2}` : 'Segment 2';
             animateNumber(document.getElementById('kpi-segment2'), g2 ? groupTotals[g2] : 0);
             if (document.getElementById('kpi-segment2-pct')) {
-                document.getElementById('kpi-segment2-pct').innerHTML = `<span id="anim-g2-pct">0%</span> dari total`;
+                document.getElementById('kpi-segment2-pct').innerHTML = `<span id="anim-g2-pct">0%</span>`;
                 animateNumber(document.getElementById('anim-g2-pct'), g2Pct, true);
             }
 
@@ -702,7 +722,7 @@
                     backgroundColor: getTransparentColor(productColors[prod]), 
                     borderWidth: 2,
                     tension: 0.3,
-                    pointRadius: window.innerWidth < 768 ? 2 : 4, // Perkecil titik di HP
+                    pointRadius: window.innerWidth < 768 ? 2 : 4, 
                     pointBackgroundColor: '#ffffff', 
                     pointBorderColor: productColors[prod],
                     pointBorderWidth: 1.5
@@ -1036,6 +1056,7 @@
             });
         }
 
+        // PERBAIKAN 2 & 3: Pengaturan Susunan Isi Baris Data (Branch -> Total -> Produk) Selaras dengan Header
         function updateTable() {
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = '';
@@ -1066,19 +1087,21 @@
                 const tr = document.createElement('tr');
                 tr.className = "bg-white border-b hover:bg-slate-50 transition-colors";
                 
+                // Susun sel produk terlebih dahulu
                 let productCellsHtml = '';
                 distinctProducts.forEach(prod => {
-                    productCellsHtml += `<td class="px-3 py-2.5 text-right font-mono text-xs" style="color: ${productColors[prod]};">${formatNumber(item[prod] || 0)}</td>`;
+                    productCellsHtml += `<td class="px-3 py-2.5 text-right font-mono text-xs md:w-32" style="color: ${productColors[prod]};">${formatNumber(item[prod] || 0)}</td>`;
                 });
 
+                // Terapkan class .sticky-branch pada Branch dan .sticky-total pada Total Amount
                 tr.innerHTML = `
-                    <td class="px-3 py-2.5 font-medium sticky-column">
+                    <td class="px-2 py-2.5 font-medium sticky-branch md:w-44 truncate">
                         <a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1 text-xs whitespace-nowrap">
                             <i class="fa-solid fa-filter text-[9px] opacity-40"></i> ${item.name}
                         </a>
                     </td>
+                    <td class="px-3 py-2.5 text-right font-mono font-bold text-slate-800 text-xs bg-slate-50/70 sticky-total md:w-36">${formatNumber(item.total)}</td>
                     ${productCellsHtml}
-                    <td class="px-3 py-2.5 text-right font-mono font-bold text-slate-800 text-xs">${formatNumber(item.total)}</td>
                 `;
                 fragment.appendChild(tr);
             });
