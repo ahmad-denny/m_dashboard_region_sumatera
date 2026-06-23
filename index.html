@@ -946,7 +946,6 @@
             const ctx = document.getElementById('compositionChart').getContext('2d');
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
             
-            // Fungsi pembantu untuk membuat efek warna transparan ber-border khas dashboard Anda
             const getTransparentColor = (hex) => {
                 if (!hex || !hex.startsWith('#')) return 'rgba(0,0,0,0.15)';
                 const r = parseInt(hex.slice(1, 3), 16);
@@ -991,7 +990,7 @@
                                     padding: window.innerWidth < 768 ? 10 : 15, 
                                     boxWidth: 8,
                                     font: { size: window.innerWidth < 768 ? 9 : 11 },
-                                    // MENGEMBALIKAN GENERATE LABELS AGAR SESUAI STANDAR STYLE TREND CHART
+                                    // FILTER GENERATE LABELS AGAR HANYA MENAMPILKAN 4 BULAN SAJA
                                     generateLabels: function(chart) {
                                         const data = chart.data;
                                         if (data.labels.length && data.datasets.length) {
@@ -999,11 +998,11 @@
                                             return data.labels.map((label, i) => {
                                                 const baseColor = dataset.backgroundColor[i];
                                                 return {
-                                                    text: label,
+                                                    text: label, // Hanya nama bulan (contoh: Jun-26)
                                                     index: i,
                                                     pointStyle: 'circle',
-                                                    fillStyle: getTransparentColor(baseColor), // Isi tengah transparan
-                                                    strokeStyle: baseColor,                     // Border solid tebal
+                                                    fillStyle: getTransparentColor(baseColor),
+                                                    strokeStyle: baseColor,
                                                     lineWidth: 2,
                                                     hidden: isNaN(dataset.data[i]) || chart.getDatasetMeta(0).data[i].hidden
                                                 };
