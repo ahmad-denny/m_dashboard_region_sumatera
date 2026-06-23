@@ -139,6 +139,7 @@
                         <div class="min-w-0 flex-1">
                             <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-total-label">Total Outstanding</p>
                             <h3 class="text-sm md:text-xl font-bold text-slate-800 mt-0.5 truncate" id="kpi-total">0</h3>
+                            <div id="growth-total" class="hidden font-bold text-xs md:text-base tracking-tight mt-0.5"></div>
                         </div>                        
                         <div class="p-1 bg-indigo-50 rounded text-indigo-600 text-xs shrink-0">
                             <i class="fa-solid fa-calculator"></i>
@@ -154,6 +155,7 @@
                         <div class="min-w-0 flex-1">
                             <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-segment1-label">Segment 1</p>
                             <h3 class="text-sm md:text-xl font-bold text-slate-800 mt-0.5 truncate" id="kpi-segment1">0</h3>
+                            <div id="growth-segment1" class="hidden font-bold text-xs md:text-base tracking-tight mt-0.5"></div>
                         </div>
                         <div class="p-1 bg-emerald-50 rounded text-emerald-600 text-xs shrink-0">
                             <i class="fa-solid fa-layer-group"></i>
@@ -169,6 +171,7 @@
                         <div class="min-w-0 flex-1">
                             <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate" id="kpi-segment2-label">Segment 2</p>
                             <h3 class="text-sm md:text-xl font-bold text-slate-800 mt-0.5 truncate" id="kpi-segment2">0</h3>
+                            <div id="growth-segment2" class="hidden font-bold text-xs md:text-base tracking-tight mt-0.5"></div>
                         </div>
                         <div class="p-1 bg-amber-50 rounded text-amber-600 text-xs shrink-0">
                             <i class="fa-solid fa-boxes-stacked"></i>
@@ -184,6 +187,7 @@
                         <div class="min-w-0 flex-1">
                             <p class="text-[9px] md:text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate">Top Dominant Product</p>
                             <h3 class="text-sm md:text-xl font-bold text-slate-800 mt-0.5 truncate" id="kpi-top-product">-</h3>
+                            <div id="growth-product" class="hidden font-bold text-xs md:text-base tracking-tight mt-0.5"></div>
                         </div>
                         <div class="p-1 bg-blue-50 rounded text-blue-600 text-xs shrink-0">
                             <i class="fa-solid fa-trophy"></i>
@@ -276,6 +280,7 @@
         
         let monthColumns = [];
         let lastMonth = '';
+        let prevMonth = ''; // Menampung bulan sebelumnya untuk hitung growth MTD
         let activeTimelineMonths = 0; 
 
         const filterColumns = ['CO-BRANCH', 'OFFICE', 'PRODUCT', 'GROUP'];
@@ -370,6 +375,7 @@
             const staticFields = ['CO-BRANCH', 'OFFICE', 'PRODUCT', 'GROUP', 'CO-BRANCH-CLEAN', 'OFFICE-CLEAN'];
             monthColumns = Object.keys(firstRow).filter(key => !staticFields.includes(key));
             lastMonth = monthColumns[monthColumns.length - 1];
+            prevMonth = monthColumns.length > 1 ? monthColumns[monthColumns.length - 2] : '';
             
             document.getElementById('current-date').innerText = lastMonth;
             document.getElementById('kpi-latest-lbl').innerText = lastMonth;
@@ -628,6 +634,21 @@
             return new Intl.NumberFormat('id-ID').format(Math.round(num));
         }
 
+        function formatGrowthText(element, growthValue) {
+            if(!element) return;
+            element.classList.remove('hidden');
+            if (growthValue > 0) {
+                element.className = "font-bold text-xs md:text-base tracking-tight mt-0.5 text-emerald-600";
+                element.innerHTML = `<i class="fa-solid fa-arrow-up text-[10px] md:text-xs mr-0.5"></i>+${formatNumber(growthValue)}`;
+            } else if (growthValue < 0) {
+                element.className = "font-bold text-xs md:text-base tracking-tight mt-0.5 text-rose-600";
+                element.innerHTML = `<i class="fa-solid fa-arrow-down text-[10px] md:text-xs mr-0.5"></i>${formatNumber(growthValue)}`;
+            } else {
+                element.className = "font-bold text-xs md:text-base tracking-tight mt-0.5 text-slate-400";
+                element.innerHTML = `0`;
+            }
+        }
+
         function toProperCase(str) {
             if (!str) return "-";
             if (str.toLowerCase() === "sme") return "SME";
@@ -639,22 +660,44 @@
             let productTotals = {};
             let grandTotal = 0;
 
-            groupLabels.forEach(grp => groupTotals[grp] = 0);
+            // Variabel untuk menyimpan data bulan lalu demi perhitungan growth MTD
+            let groupTotalsPrev = {};
+            let productTotalsPrev = {};
+            let grandTotalPrev = 0;
+
+            groupLabels.forEach(grp => {
+                groupTotals[grp] = 0;
+                groupTotalsPrev[grp] = 0;
+            });
 
             filteredData.forEach(row => {
                 const val = row[lastMonth] || 0;
+                const valPrev = prevMonth ? (row[prevMonth] || 0) : 0;
+                
                 const grp = row.GROUP; 
                 const product = row.PRODUCT;
                 
                 if(grp && groupTotals[grp] !== undefined) groupTotals[grp] += val;
+                if(grp && groupTotalsPrev[grp] !== undefined) groupTotalsPrev[grp] += valPrev;
+                
                 grandTotal += val;
+                grandTotalPrev += valPrev;
 
                 if (!productTotals[product]) productTotals[product] = 0;
                 productTotals[product] += val;
+
+                if (!productTotalsPrev[product]) productTotalsPrev[product] = 0;
+                productTotalsPrev[product] += valPrev;
             });
 
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
             const subLabelEl = document.getElementById('kpi-top-product-sublabel');
+
+            // Sembunyikan semua kontainer growth terlebih dahulu secara default
+            document.getElementById('growth-total').classList.add('hidden');
+            document.getElementById('growth-segment1').classList.add('hidden');
+            document.getElementById('growth-segment2').classList.add('hidden');
+            document.getElementById('growth-product').classList.add('hidden');
 
             if (currentFileName === "mdin.csv") {
                 const totalMonths = monthColumns.length;
@@ -753,6 +796,32 @@
                     }
                 }
                 topProductEl.innerText = toProperCase(topProduct);
+
+                // PENAMBAHAN SPESIFIK: HITUNG & TAMPILKAN MTD GROWTH KHUSUS UNTUK DANA.CSV
+                if (currentFileName === "dana.csv" && prevMonth) {
+                    // 1. MTD Growth Total
+                    let growthTotal = grandTotal - grandTotalPrev;
+                    formatGrowthText(document.getElementById('growth-total'), growthTotal);
+
+                    // 2. MTD Growth Segment 1
+                    if(g1) {
+                        let growthG1 = groupTotals[g1] - groupTotalsPrev[g1];
+                        formatGrowthText(document.getElementById('growth-segment1'), growthG1);
+                    }
+
+                    // 3. MTD Growth Segment 2
+                    if(g2) {
+                        let growthG2 = groupTotals[g2] - groupTotalsPrev[g2];
+                        formatGrowthText(document.getElementById('growth-segment2'), growthG2);
+                    }
+
+                    // 4. MTD Growth Top Dominant Product
+                    if(topProduct !== "-") {
+                        let growthTopProd = productTotals[topProduct] - (productTotalsPrev[topProduct] || 0);
+                        formatGrowthText(document.getElementById('growth-product'), growthTopProd);
+                    }
+                }
+
                 document.getElementById('mix-chart-title').innerText = "Product Mix (Latest Month)";
             }
 
@@ -953,7 +1022,7 @@
                 const b = parseInt(hex.slice(5, 7), 16);
                 return `rgba(${r}, ${g}, ${b}, 0.15)`;
             };
-        
+
             if (currentFileName === "mdin.csv") {
                 const last4Months = monthColumns.slice(-4).reverse(); 
                 
@@ -962,11 +1031,11 @@
                     filteredData.forEach(row => { sum += (row[month] || 0); });
                     return sum;
                 });
-        
+
                 if (charts.comp) charts.comp.destroy();
-        
+
                 const mdinMonthColors = ['#4f46e5', '#10b981', '#f59e0b', '#3b82f6'];
-        
+
                 charts.comp = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
@@ -990,7 +1059,6 @@
                                     padding: window.innerWidth < 768 ? 10 : 15, 
                                     boxWidth: 8,
                                     font: { size: window.innerWidth < 768 ? 9 : 11 },
-                                    // FILTER GENERATE LABELS AGAR HANYA MENAMPILKAN 4 BULAN SAJA
                                     generateLabels: function(chart) {
                                         const data = chart.data;
                                         if (data.labels.length && data.datasets.length) {
@@ -998,7 +1066,7 @@
                                             return data.labels.map((label, i) => {
                                                 const baseColor = dataset.backgroundColor[i];
                                                 return {
-                                                    text: label, // Hanya nama bulan (contoh: Jun-26)
+                                                    text: label, 
                                                     index: i,
                                                     pointStyle: 'circle',
                                                     fillStyle: getTransparentColor(baseColor),
@@ -1025,15 +1093,14 @@
                     }
                 });
             } else {
-                // LOGIKA UNTUK FILE LAIN (TETAP SAMA DENGAN FILTER PRODUCT MIX)
                 const dataValues = distinctProducts.map(prod => {
                     let sum = 0;
                     filteredData.forEach(row => { if (row.PRODUCT === prod) sum += (row[lastMonth] || 0); });
                     return sum;
                 });
-        
+
                 if (charts.comp) charts.comp.destroy();
-        
+
                 charts.comp = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
@@ -1083,7 +1150,7 @@
                 });
             }
         }
-        
+
         function updateCoBranchChart() {
             const ctx = document.getElementById('coBranchChart').getContext('2d');
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
