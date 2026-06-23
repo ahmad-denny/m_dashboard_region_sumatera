@@ -616,15 +616,16 @@
             return new Intl.NumberFormat('id-ID').format(Math.round(num));
         }
 
-        function toProperCase(str) {
-            if (!str) return "-";
-            return str.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
-        }
-        
+       
         function updateKPIs() {
             let groupTotals = {};
             let productTotals = {};
             let grandTotal = 0;
+
+            function toProperCase(str) {
+                if (!str) return "-";
+                return str.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+            }
 
             groupLabels.forEach(grp => groupTotals[grp] = 0);
 
