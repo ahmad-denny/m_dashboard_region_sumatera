@@ -634,10 +634,11 @@
             return new Intl.NumberFormat('id-ID').format(Math.round(num));
         }
 
-        // FUNGSI BARU: Format ke Milyar
+        // FUNGSI BARU: Format ke Milyar dengan gaya Indonesia (4.035,01 M)
         function formatToBillion(num) {
             if (!num && num !== 0) return "0";
-            return (num / 1000000000).toFixed(2) + " M";
+            // Bagi 1 Miliar, lalu format dengan locale ID-ID dan 2 desimal
+            return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num / 1000000000) + " M";
         }
 
         function formatGrowthText(element, growthValue) {
