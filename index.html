@@ -42,6 +42,15 @@
         .collapsed .nav-header { justify-content: center; }
         .collapsed .logo-text { display: none; }
 
+        /* PERBAIKAN DEFINITIF LEGEND VIA CSS */
+        .chartjs-legend li span {
+            border-radius: 50% !important;
+            width: 8px !important;
+            height: 8px !important;
+            display: inline-block !important;
+            margin-right: 6px !important;
+        }
+
         @media (max-width: 768px) {
             .sticky-column {
                 position: sticky; left: 0; background-color: #ffffff; z-index: 10;
@@ -520,17 +529,16 @@
 
         function toProperCase(str) { if(!str) return "-"; if(str.toLowerCase()==="sme") return "SME"; return str.toLowerCase().replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
 
-        // PERBAIKAN DEFINITIF LEGEND
+        // FUNGSI UNIFIED LEGEND DENGAN HARD OVERRIDE
         function getUnifiedLegendConfig() {
             return {
                 position: 'bottom',
                 labels: {
-                    usePointStyle: true, // Wajib true di root
-                    pointStyle: 'circle', // Wajib circle di root
+                    usePointStyle: true,
+                    pointStyle: 'circle',
                     boxWidth: 8,
                     padding: window.innerWidth < 768 ? 10 : 20,
                     font: { size: window.innerWidth < 768 ? 9 : 11 },
-                    // Hard override generateLabels untuk memastikan bentuk lingkaran
                     generateLabels: function(chart) {
                         const datasets = chart.data.datasets;
                         return datasets.map((ds, i) => ({
@@ -540,9 +548,11 @@
                             lineWidth: 2,
                             hidden: !chart.isDatasetVisible(i),
                             datasetIndex: i,
-                            // Paksa properti ini agar tidak ter-cache sebagai kotak
+                            // Hard override properties
                             pointStyle: 'circle',
-                            usePointStyle: true
+                            usePointStyle: true,
+                            // Hapus boxWidth agar tidak bentrok dengan pointStyle
+                            boxWidth: 0 
                         }));
                     }
                 }
