@@ -520,10 +520,27 @@
 
         function toProperCase(str) { if(!str) return "-"; if(str.toLowerCase()==="sme") return "SME"; return str.toLowerCase().replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
 
+        // FUNGSI UNIFIED LEGEND YANG DIGUNAKAN DI SEMUA CHART UTAMA
         function getUnifiedLegendConfig() {
             return {
-                position:'bottom', labels:{ usePointStyle:true, pointStyle:'circle', boxWidth:8, padding:window.innerWidth<768?10:20, font:{size:window.innerWidth<768?9:11},
-                    generateLabels:function(chart){return chart.data.datasets.map((ds,i)=>({text:ds.label,datasetIndex:i,pointStyle:'circle',fillStyle:ds.backgroundColor,strokeStyle:ds.borderColor||ds.backgroundColor,lineWidth:2,hidden:!chart.isDatasetVisible(i)}));}
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    boxWidth: 8,
+                    padding: window.innerWidth < 768 ? 10 : 20,
+                    font: { size: window.innerWidth < 768 ? 9 : 11 },
+                    generateLabels: function(chart) {
+                        return chart.data.datasets.map((ds, i) => ({
+                            text: ds.label,
+                            datasetIndex: i,
+                            pointStyle: 'circle',
+                            fillStyle: ds.backgroundColor,
+                            strokeStyle: ds.borderColor || ds.backgroundColor,
+                            lineWidth: 2,
+                            hidden: !chart.isDatasetVisible(i)
+                        }));
+                    }
                 }
             };
         }
@@ -544,7 +561,6 @@
                 if(!productTotalsPrev[product]) productTotalsPrev[product]=0; productTotalsPrev[product]+=valPrev;
             });
 
-            // Hitung total untuk bulan sebelumnya (prevMonth) secara terpisah
             let prevMonthGrandTotal = 0;
             let prevMonthProductTotals = {};
             if (prevMonth) {
@@ -587,7 +603,6 @@
                 document.getElementById('mix-chart-title').innerText="Acquisition Trend (4 Months)";
 
             } else if (currentFileName === "financing.csv") {
-                // KHUSUS TAB FINANCING
                 document.getElementById('kpi-total-label').innerText = "Total Booking";
                 if(isBillionFormat){document.getElementById('kpi-total').innerText=formatToBillion(grandTotal);}else{animateNumber(document.getElementById('kpi-total'),grandTotal);}
 
@@ -605,25 +620,13 @@
                 document.getElementById('kpi-segment2-pct').innerHTML=`<span id="anim-g2-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
                 animateNumber(document.getElementById('anim-g2-pct'),g2Pct,true);
 
-                // PERBAIKAN: Last Month Booking = Booking di BULAN SEBELUMNYA (prevMonth)
                 kpiFourthLabel.innerText = "Last Month Booking";
                 kpiFourthValue.innerText = isBillionFormat ? formatToBillion(prevMonthGrandTotal) : formatNumber(prevMonthGrandTotal);
                 kpiFourthSublabel.className = "text-slate-400 not-italic truncate";
-                kpiFourthSublabel.innerText = prevMonth || '-'; // Menampilkan nama bulan sebelumnya (Mei-26)
+                kpiFourthSublabel.innerText = prevMonth || '-';
                 kpiFourthIcon.className = "fa-solid fa-book-open";
 
-                // Debug log
-                console.log("=== FINANCING DEBUG ===");
-                console.log("Current File:", currentFileName);
-                console.log("Last Month Column:", lastMonth);
-                console.log("Previous Month Column:", prevMonth);
-                console.log("Grand Total (This Month - All Products):", grandTotal);
-                console.log("Grand Total in Billion (This Month):", formatToBillion(grandTotal));
-                console.log("Prev Month Grand Total (Last Month Booking):", prevMonthGrandTotal);
-                console.log("Prev Month Grand Total in Billion:", formatToBillion(prevMonthGrandTotal));
-
             } else {
-                // DEFAULT UNTUK TAB LAINNYA
                 kpiFourthLabel.innerText = "Top Dominant Product";
                 kpiFourthSublabel.className = "text-slate-400 italic truncate";
                 kpiFourthSublabel.innerText = "By Volume Month";
@@ -664,7 +667,6 @@
                 document.getElementById('mix-chart-title').innerText="Product Mix (Latest Month)";
             }
 
-            // Group Percentage Labels
             groupLabels.forEach((grp,idx)=>{
                 const element=document.getElementById(`comp-group-pct-${idx}`);
                 if(element){
@@ -678,7 +680,6 @@
                 }
             });
 
-            // Analytic Summary
             let officeTotals={};
             filteredData.forEach(row=>{const office=row['OFFICE-CLEAN'];if(office)officeTotals[office]=(officeTotals[office]||0)+(row[lastMonth]||0);});
             let topOffice="-"; let maxOfficeVal=0;
@@ -746,6 +747,8 @@
             const top5CoBranchNames=Object.entries(totalCoBranchMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
             const datasetBreakdown=distinctProducts.map(prod=>{return{label:prod==="Sme"?"SME":prod.replace(/_/g,' '),data:top5CoBranchNames.map(coName=>{let totalProd=0;filteredData.forEach(row=>{if(row['CO-BRANCH-CLEAN']===coName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),backgroundColor:productColors[prod],barThickness:window.innerWidth<768?12:16};});
             if(charts.coBranch)charts.coBranch.destroy();
+            
+            // PERUBAHAN: Menggunakan getUnifiedLegendConfig() agar sama persis dengan Trend Analysis
             charts.coBranch=new Chart(ctx,{type:'bar',data:{labels:top5CoBranchNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getUnifiedLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatNumber(context.raw);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
         }
 
@@ -757,6 +760,8 @@
             const top5OfficeNames=Object.entries(totalOfficeMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
             const datasetBreakdown=distinctProducts.map(prod=>{return{label:prod==="Sme"?"SME":prod.replace(/_/g,' '),data:top5OfficeNames.map(officeName=>{let totalProd=0;filteredData.forEach(row=>{if(row['OFFICE-CLEAN']===officeName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),backgroundColor:productColors[prod],barThickness:window.innerWidth<768?12:16};});
             if(charts.branch)charts.branch.destroy();
+            
+            // PERUBAHAN: Menggunakan getUnifiedLegendConfig() agar sama persis dengan Trend Analysis
             charts.branch=new Chart(ctx,{type:'bar',data:{labels:top5OfficeNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getUnifiedLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatNumber(context.raw);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
         }
 
