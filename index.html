@@ -954,6 +954,25 @@
             }
         
             document.getElementById('analytics-text-summary').innerHTML = summaryText;
+
+            console.log("Current File:", currentFileName);
+            console.log("Last Month Column:", lastMonth);
+            console.log("Grand Total (All Products):", grandTotal);
+            console.log("Grand Total in Billion:", formatToBillion(grandTotal));
+            
+            // Cari top product
+            let topProduct = "-";
+            let maxVal = 0;
+            for (const [prod, total] of Object.entries(productTotals)) {
+                if (total > maxVal) { 
+                    maxVal = total; 
+                    topProduct = prod; 
+                }
+            }
+            console.log("Top Product:", topProduct);
+            console.log("Top Product Value:", maxVal);
+            console.log("Top Product Value in Billion:", formatToBillion(maxVal));            
+            
         }
 
         function updateCharts() {
