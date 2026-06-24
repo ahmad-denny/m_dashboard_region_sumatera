@@ -520,26 +520,26 @@
 
         function toProperCase(str) { if(!str) return "-"; if(str.toLowerCase()==="sme") return "SME"; return str.toLowerCase().replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
 
-        // FUNGSI UNIFIED LEGEND YANG DIGUNAKAN DI SEMUA CHART UTAMA
+        // FUNGSI UNIFIED LEGEND YANG DIPAKSAKAN UNTUK SELALU MENGGUNAKAN CIRCLE
         function getUnifiedLegendConfig() {
             return {
                 position: 'bottom',
                 labels: {
                     usePointStyle: true,
-                    pointStyle: 'circle',
+                    pointStyle: 'circle', // Memaksa bentuk bulat
                     boxWidth: 8,
                     padding: window.innerWidth < 768 ? 10 : 20,
                     font: { size: window.innerWidth < 768 ? 9 : 11 },
                     generateLabels: function(chart) {
-                        return chart.data.datasets.map((ds, i) => ({
-                            text: ds.label,
-                            datasetIndex: i,
-                            pointStyle: 'circle',
-                            fillStyle: ds.backgroundColor,
-                            strokeStyle: ds.borderColor || ds.backgroundColor,
-                            lineWidth: 2,
-                            hidden: !chart.isDatasetVisible(i)
-                        }));
+                        // Hard reset logic untuk mencegah caching legend lama
+                        const originalGenerate = Chart.defaults.plugins.legend.labels.generateLabels;
+                        const labels = originalGenerate.call(this, chart);
+                        
+                        return labels.map(label => {
+                            label.pointStyle = 'circle';
+                            label.usePointStyle = true;
+                            return label;
+                        });
                     }
                 }
             };
@@ -562,15 +562,8 @@
             });
 
             let prevMonthGrandTotal = 0;
-            let prevMonthProductTotals = {};
             if (prevMonth) {
-                filteredData.forEach(row => {
-                    const valPrev = row[prevMonth] || 0;
-                    prevMonthGrandTotal += valPrev;
-                    const product = row.PRODUCT;
-                    if (!prevMonthProductTotals[product]) prevMonthProductTotals[product] = 0;
-                    prevMonthProductTotals[product] += valPrev;
-                });
+                filteredData.forEach(row => { prevMonthGrandTotal += (row[prevMonth] || 0); });
             }
 
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
@@ -748,7 +741,7 @@
             const datasetBreakdown=distinctProducts.map(prod=>{return{label:prod==="Sme"?"SME":prod.replace(/_/g,' '),data:top5CoBranchNames.map(coName=>{let totalProd=0;filteredData.forEach(row=>{if(row['CO-BRANCH-CLEAN']===coName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),backgroundColor:productColors[prod],barThickness:window.innerWidth<768?12:16};});
             if(charts.coBranch)charts.coBranch.destroy();
             
-            // PERUBAHAN: Menggunakan getUnifiedLegendConfig() agar sama persis dengan Trend Analysis
+            // PERUBAHAN DEFINITIF: Menggunakan getUnifiedLegendConfig() + Tooltip seragam
             charts.coBranch=new Chart(ctx,{type:'bar',data:{labels:top5CoBranchNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getUnifiedLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatNumber(context.raw);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
         }
 
@@ -761,7 +754,7 @@
             const datasetBreakdown=distinctProducts.map(prod=>{return{label:prod==="Sme"?"SME":prod.replace(/_/g,' '),data:top5OfficeNames.map(officeName=>{let totalProd=0;filteredData.forEach(row=>{if(row['OFFICE-CLEAN']===officeName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),backgroundColor:productColors[prod],barThickness:window.innerWidth<768?12:16};});
             if(charts.branch)charts.branch.destroy();
             
-            // PERUBAHAN: Menggunakan getUnifiedLegendConfig() agar sama persis dengan Trend Analysis
+            // PERUBAHAN DEFINITIF: Menggunakan getUnifiedLegendConfig() + Tooltip seragam
             charts.branch=new Chart(ctx,{type:'bar',data:{labels:top5OfficeNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getUnifiedLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatNumber(context.raw);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
         }
 
