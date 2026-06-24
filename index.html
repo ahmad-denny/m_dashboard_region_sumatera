@@ -782,12 +782,12 @@
                 } else {
                     animateNumber(document.getElementById('kpi-total'), grandTotal);
                 }
-
+            
                 const g1 = groupLabels[0];
                 const g2 = groupLabels[1];
                 const g1Pct = grandTotal ? ((groupTotals[g1] / grandTotal) * 100) : 0;
                 const g2Pct = grandTotal ? ((groupTotals[g2] / grandTotal) * 100) : 0;
-
+            
                 document.getElementById('kpi-segment1-label').innerText = g1 ? `Total ${g1}` : 'Segment 1';
                 if (isBillionFormat) {
                     document.getElementById('kpi-segment1').innerText = g1 ? formatToBillion(groupTotals[g1]) : "0";
@@ -796,7 +796,7 @@
                 }
                 document.getElementById('kpi-segment1-pct').innerHTML = `<span id="anim-g1-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
                 animateNumber(document.getElementById('anim-g1-pct'), g1Pct, true);
-
+            
                 document.getElementById('kpi-segment2-label').innerText = g2 ? `Total ${g2}` : 'Segment 2';
                 if (isBillionFormat) {
                     document.getElementById('kpi-segment2').innerText = g2 ? formatToBillion(groupTotals[g2]) : "0";
@@ -805,20 +805,13 @@
                 }
                 document.getElementById('kpi-segment2-pct').innerHTML = `<span id="anim-g2-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
                 animateNumber(document.getElementById('anim-g2-pct'), g2Pct, true);
-
-                // Cari Top Product & Nilainya untuk Last Month Booking
-                let topProduct = "-";
-                let maxVal = 0;
-                for (const [prod, total] of Object.entries(productTotals)) {
-                    if (total > maxVal) { 
-                        maxVal = total; 
-                        topProduct = prod; 
-                    }
-                }
-
+            
+                // PERBAIKAN: Gunakan grandTotal (total semua produk) untuk Last Month Booking
+                // Bukan maxVal (produk terbesar)
+                
                 // Update Card ke-4 khusus Financing
                 kpiFourthLabel.innerText = "Last Month Booking";
-                kpiFourthValue.innerText = isBillionFormat ? formatToBillion(maxVal) : formatNumber(maxVal);
+                kpiFourthValue.innerText = isBillionFormat ? formatToBillion(grandTotal) : formatNumber(grandTotal);
                 kpiFourthSublabel.className = "text-slate-400 not-italic truncate";
                 kpiFourthSublabel.innerText = lastMonth; // Menampilkan nama bulan di bawah angka
                 kpiFourthIcon.className = "fa-solid fa-book-open"; // Ikon booking
