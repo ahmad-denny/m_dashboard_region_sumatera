@@ -529,7 +529,8 @@
         }
 
         // Fungsi Helper untuk Render MoM dalam ANGKA (Nominal)
-        function renderMoM(elementId, currentVal, prevVal, isBillion = false, isNPF = false) {
+        // PERBAIKAN: Menambahkan parameter comparisonLabel agar bisa custom teks "vs ..."
+        function renderMoM(elementId, currentVal, prevVal, isBillion = false, isNPF = false, comparisonLabel = null) {
             const el = document.getElementById(elementId);
             if (!el) return;
             
@@ -573,8 +574,11 @@
             const sign = diff > 0 ? '+' : '';
             const formattedDiff = isBillion ? formatToBillion(diff) : formatNumber(diff);
             
+            // Gunakan label kustom jika ada, jika tidak gunakan prevMonth
+            const labelText = comparisonLabel || prevMonth;
+            
             el.className = `mt-1 text-[calc((0.875rem+1.125vw)*0.5)] font-medium leading-none ${colorClass}`;
-            el.innerHTML = `<i class="fa-solid ${arrow} text-[0.8em] mr-1"></i>${sign}${formattedDiff} vs ${prevMonth}`;
+            el.innerHTML = `<i class="fa-solid ${arrow} text-[0.8em] mr-1"></i>${sign}${formattedDiff} vs ${labelText}`;
         }
 
         function formatGrowthText(element,growthValue) {
@@ -735,8 +739,8 @@
                 kpiFourthSublabel.innerText = prevMonth || '-';
                 kpiFourthIcon.className = "fa-solid fa-book-open";
                 
-                // Render MoM menggunakan prevPrevMonth sebagai pembanding
-                renderMoM('mom-fourth', prevMonthGrandTotal, prevPrevMonthGrandTotal, isBillionFormat, isNPF);
+                // Render MoM menggunakan prevPrevMonth sebagai pembanding DAN label kustom
+                renderMoM('mom-fourth', prevMonthGrandTotal, prevPrevMonthGrandTotal, isBillionFormat, isNPF, prevPrevMonth);
 
             } else if (currentFileName === "funding.csv") {
                 // KHUSUS TAB FUNDING
