@@ -42,14 +42,8 @@
         .collapsed .nav-header { justify-content: center; }
         .collapsed .logo-text { display: none; }
 
-        /* PERBAIKAN DEFINITIF LEGEND VIA CSS */
-        .chartjs-legend li span {
-            border-radius: 50% !important;
-            width: 8px !important;
-            height: 8px !important;
-            display: inline-block !important;
-            margin-right: 6px !important;
-        }
+        /* HAPUS CSS OVERRIDE LEGEND GLOBAL AGAR BISA CUSTOM PER CHART */
+        /* .chartjs-legend li span { ... } DIHAPUS */
 
         @media (max-width: 768px) {
             .sticky-column {
@@ -589,13 +583,13 @@
 
         function toProperCase(str) { if(!str) return "-"; if(str.toLowerCase()==="sme") return "SME"; return str.toLowerCase().replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
 
-        // FUNGSI UNIFIED LEGEND DENGAN HARD OVERRIDE
+        // FUNGSI UNIFIED LEGEND UNTUK TREND ANALYSIS (LINGKARAN)
         function getUnifiedLegendConfig() {
             return {
                 position: 'bottom',
                 labels: {
                     usePointStyle: true,
-                    pointStyle: 'circle',
+                    pointStyle: 'circle', // Tetap Circle untuk Trend
                     boxWidth: 8,
                     padding: window.innerWidth < 768 ? 10 : 20,
                     font: { size: window.innerWidth < 768 ? 9 : 11 },
@@ -611,6 +605,34 @@
                             pointStyle: 'circle',
                             usePointStyle: true,
                             boxWidth: 0 
+                        }));
+                    }
+                }
+            };
+        }
+
+        // FUNGSI LEGEND KOTAK KHUSUS TOP 5 BAR CHARTS
+        function getSquareLegendConfig() {
+            return {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'rect', // Ganti jadi Kotak
+                    boxWidth: 8,
+                    padding: window.innerWidth < 768 ? 10 : 20,
+                    font: { size: window.innerWidth < 768 ? 9 : 11 },
+                    generateLabels: function(chart) {
+                        const datasets = chart.data.datasets;
+                        return datasets.map((ds, i) => ({
+                            text: ds.label,
+                            fillStyle: ds.backgroundColor,
+                            strokeStyle: ds.borderColor || ds.backgroundColor,
+                            lineWidth: 2,
+                            hidden: !chart.isDatasetVisible(i),
+                            datasetIndex: i,
+                            pointStyle: 'rect', // Paksa Kotak
+                            usePointStyle: true,
+                            boxWidth: 8 
                         }));
                     }
                 }
@@ -1016,7 +1038,9 @@
             const top5CoBranchNames=Object.entries(totalCoBranchMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
             const datasetBreakdown=distinctProducts.map(prod=>{return{label:prod==="Sme"?"SME":prod.replace(/_/g,' '),data:top5CoBranchNames.map(coName=>{let totalProd=0;filteredData.forEach(row=>{if(row['CO-BRANCH-CLEAN']===coName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),backgroundColor:productColors[prod],barThickness:window.innerWidth<768?12:16};});
             if(charts.coBranch)charts.coBranch.destroy();
-            charts.coBranch=new Chart(ctx,{type:'bar',data:{labels:top5CoBranchNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getUnifiedLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatNumber(context.raw);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
+            
+            // PERUBAHAN: Menggunakan getSquareLegendConfig() agar legend berbentuk KOTAK
+            charts.coBranch=new Chart(ctx,{type:'bar',data:{labels:top5CoBranchNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getSquareLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatNumber(context.raw);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
         }
 
         function updateBranchChart(){
@@ -1027,7 +1051,9 @@
             const top5OfficeNames=Object.entries(totalOfficeMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
             const datasetBreakdown=distinctProducts.map(prod=>{return{label:prod==="Sme"?"SME":prod.replace(/_/g,' '),data:top5OfficeNames.map(officeName=>{let totalProd=0;filteredData.forEach(row=>{if(row['OFFICE-CLEAN']===officeName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),backgroundColor:productColors[prod],barThickness:window.innerWidth<768?12:16};});
             if(charts.branch)charts.branch.destroy();
-            charts.branch=new Chart(ctx,{type:'bar',data:{labels:top5OfficeNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getUnifiedLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatNumber(context.raw);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
+            
+            // PERUBAHAN: Menggunakan getSquareLegendConfig() agar legend berbentuk KOTAK
+            charts.branch=new Chart(ctx,{type:'bar',data:{labels:top5OfficeNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getSquareLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatNumber(context.raw);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
         }
 
         function updateTable(){
