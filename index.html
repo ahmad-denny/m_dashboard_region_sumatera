@@ -282,7 +282,7 @@
         let monthColumns = [];
         let lastMonth = '';
         let prevMonth = '';
-        let prevPrevMonth = ''; // Bulan ke-3 dari belakang (untuk growth Last Month Booking)
+        let prevPrevMonth = ''; // Bulan ke-3 dari belakang (untuk growth Last Month)
         let activeTimelineMonths = 0; 
 
         const filterColumns = ['CO-BRANCH', 'OFFICE', 'PRODUCT', 'GROUP'];
@@ -529,7 +529,6 @@
         }
 
         // Fungsi Helper untuk Render MoM dalam ANGKA (Nominal)
-        // PERBAIKAN: Menambahkan parameter comparisonLabel agar bisa custom teks "vs ..."
         function renderMoM(elementId, currentVal, prevVal, isBillion = false, isNPF = false, comparisonLabel = null) {
             const el = document.getElementById(elementId);
             if (!el) return;
@@ -782,8 +781,41 @@
                 // Ganti ikon trophy menjadi ikon deposito/stack
                 kpiFourthIcon.className = "fa-solid fa-coins";
 
+            } else if (currentFileName === "haji.csv") {
+                // KHUSUS TAB HAJJ
+                document.getElementById('kpi-total-label').innerText = "Total Porsi";
+                // Data haji biasanya tidak dalam milyar, jadi gunakan formatNumber biasa
+                animateNumber(document.getElementById('kpi-total'), grandTotal);
+                renderMoM('mom-total', grandTotal, grandTotalPrev, false, isNPF);
+
+                const g1=groupLabels[0]; const g2=groupLabels[1];
+                const g1Pct=grandTotal?((groupTotals[g1]/grandTotal)*100):0;
+                const g2Pct=grandTotal?((groupTotals[g2]/grandTotal)*100):0;
+
+                document.getElementById('kpi-segment1-label').innerText=g1?`Total ${g1}`:'Segment 1';
+                animateNumber(document.getElementById('kpi-segment1'), g1?groupTotals[g1]:0);
+                renderMoM('mom-seg1', g1?groupTotals[g1]:0, g1?groupTotalsPrev[g1]:0, false, isNPF);
+                document.getElementById('kpi-segment1-pct').innerHTML=`<span id="anim-g1-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g1-pct'),g1Pct,true);
+
+                document.getElementById('kpi-segment2-label').innerText=g2?`Total ${g2}`:'Segment 2';
+                animateNumber(document.getElementById('kpi-segment2'), g2?groupTotals[g2]:0);
+                renderMoM('mom-seg2', g2?groupTotals[g2]:0, g2?groupTotalsPrev[g2]:0, false, isNPF);
+                document.getElementById('kpi-segment2-pct').innerHTML=`<span id="anim-g2-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g2-pct'),g2Pct,true);
+
+                // PERUBAHAN: Last Month Porsi Growth = Mei (prevMonth) vs April (prevPrevMonth)
+                kpiFourthLabel.innerText = "Last Month Porsi";
+                kpiFourthValue.innerText = formatNumber(prevMonthGrandTotal);
+                kpiFourthSublabel.className = "text-slate-400 not-italic truncate";
+                kpiFourthSublabel.innerText = prevMonth || '-';
+                kpiFourthIcon.className = "fa-solid fa-book-open";
+                
+                // Render MoM menggunakan prevPrevMonth sebagai pembanding DAN label kustom
+                renderMoM('mom-fourth', prevMonthGrandTotal, prevPrevMonthGrandTotal, false, isNPF, prevPrevMonth);
+
             } else {
-                // DEFAULT UNTUK TAB LAINNYA
+                // DEFAULT UNTUK TAB LAINNYA (Qris, MDin, NPF)
                 kpiFourthLabel.innerText = "Top Dominant Product";
                 kpiFourthSublabel.className = "text-slate-400 italic truncate";
                 kpiFourthSublabel.innerText = "By Volume Month";
@@ -791,7 +823,6 @@
 
                 let totalLabelText = "Total Outstanding";
                 if(currentFileName==="pembiayaan.csv") totalLabelText="Total Booking";
-                else if(currentFileName==="haji.csv") totalLabelText="Total Porsi";
                 else if(currentFileName==="qris.csv") totalLabelText="Total Akusisi";
                 document.getElementById('kpi-total-label').innerText = totalLabelText;
 
@@ -849,6 +880,8 @@
                 if(currentFileName!=="mdin.csv"){
                     if (currentFileName === "funding.csv") {
                          summaryText += `Komposisi dana didominasi oleh <b>SA (Tabungan)</b> sebesar <b>${saPct.toFixed(1)}%</b>, <b>TD</b> sebesar <b>${tdPct.toFixed(1)}%</b>, dan <b>CA (Giro)</b> sebesar <b>${caPct.toFixed(1)}%</b>. `;
+                    } else if (currentFileName === "haji.csv") {
+                        summaryText += `Porsi bulan lalu (<b>${prevMonth}</b>) tercatat sebesar <b>${formatNumber(prevMonthGrandTotal)}</b> porsi. `;
                     } else {
                         const g1=groupLabels[0]; const g2=groupLabels[1];
                         const g1Pct=grandTotal?((groupTotals[g1]/grandTotal)*100):0;
