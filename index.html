@@ -858,8 +858,40 @@
                 // Ubah judul chart mix menjadi Acquisition Trend
                 document.getElementById('mix-chart-title').innerText = "Acquisition Trend (4 Months)";
 
+            } else if (currentFileName === "coll.csv") {
+                // PERUBAHAN: KHUSUS TAB NPF (LAST MONTH OUTSTANDING)
+                document.getElementById('kpi-total-label').innerText = "Total Outstanding";
+                if(isBillionFormat){document.getElementById('kpi-total').innerText=formatToBillion(grandTotal);}else{animateNumber(document.getElementById('kpi-total'),grandTotal);}
+                renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
+
+                const g1=groupLabels[0]; const g2=groupLabels[1];
+                const g1Pct=grandTotal?((groupTotals[g1]/grandTotal)*100):0;
+                const g2Pct=grandTotal?((groupTotals[g2]/grandTotal)*100):0;
+
+                document.getElementById('kpi-segment1-label').innerText=g1?`Total ${g1}`:'Segment 1';
+                if(isBillionFormat){document.getElementById('kpi-segment1').innerText=g1?formatToBillion(groupTotals[g1]):"0";}else{animateNumber(document.getElementById('kpi-segment1'),g1?groupTotals[g1]:0);}
+                renderMoM('mom-seg1', g1?groupTotals[g1]:0, g1?groupTotalsPrev[g1]:0, isBillionFormat, isNPF);
+                document.getElementById('kpi-segment1-pct').innerHTML=`<span id="anim-g1-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g1-pct'),g1Pct,true);
+
+                document.getElementById('kpi-segment2-label').innerText=g2?`Total ${g2}`:'Segment 2';
+                if(isBillionFormat){document.getElementById('kpi-segment2').innerText=g2?formatToBillion(groupTotals[g2]):"0";}else{animateNumber(document.getElementById('kpi-segment2'),g2?groupTotals[g2]:0);}
+                renderMoM('mom-seg2', g2?groupTotals[g2]:0, g2?groupTotalsPrev[g2]:0, isBillionFormat, isNPF);
+                document.getElementById('kpi-segment2-pct').innerHTML=`<span id="anim-g2-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g2-pct'),g2Pct,true);
+
+                // PERUBAHAN: Last Month Outstanding Growth = Mei (prevMonth) vs April (prevPrevMonth)
+                kpiFourthLabel.innerText = "Last Month Outstanding";
+                kpiFourthValue.innerText = isBillionFormat ? formatToBillion(prevMonthGrandTotal) : formatNumber(prevMonthGrandTotal);
+                kpiFourthSublabel.className = "text-slate-400 not-italic truncate";
+                kpiFourthSublabel.innerText = prevMonth || '-';
+                kpiFourthIcon.className = "fa-solid fa-book-open";
+                
+                // Render MoM menggunakan prevPrevMonth sebagai pembanding DAN label kustom
+                renderMoM('mom-fourth', prevMonthGrandTotal, prevPrevMonthGrandTotal, isBillionFormat, isNPF, prevPrevMonth);
+
             } else {
-                // DEFAULT UNTUK TAB LAINNYA (NPF)
+                // DEFAULT UNTUK TAB LAINNYA
                 kpiFourthLabel.innerText = "Top Dominant Product";
                 kpiFourthSublabel.className = "text-slate-400 italic truncate";
                 kpiFourthSublabel.innerText = "By Volume Month";
@@ -925,6 +957,8 @@
                          summaryText += `Komposisi dana didominasi oleh <b>SA (Tabungan)</b> sebesar <b>${saPct.toFixed(1)}%</b>, <b>TD</b> sebesar <b>${tdPct.toFixed(1)}%</b>, dan <b>CA (Giro)</b> sebesar <b>${caPct.toFixed(1)}%</b>. `;
                     } else if (currentFileName === "haji.csv") {
                         summaryText += `Porsi bulan lalu (<b>${prevMonth}</b>) tercatat sebesar <b>${formatNumber(prevMonthGrandTotal)}</b> porsi. `;
+                    } else if (currentFileName === "coll.csv") {
+                        summaryText += `Outstanding bulan lalu (<b>${prevMonth}</b>) tercatat sebesar <b>${isBillionFormat?formatToBillion(prevMonthGrandTotal):formatNumber(prevMonthGrandTotal)}</b>. `;
                     } else {
                         const g1=groupLabels[0]; const g2=groupLabels[1];
                         const g1Pct=grandTotal?((groupTotals[g1]/grandTotal)*100):0;
