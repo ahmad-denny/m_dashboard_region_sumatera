@@ -105,7 +105,7 @@
             <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center shrink-0">
                 <i class="fa-solid fa-chart-line text-white text-sm"></i>
             </div>
-            <h1 class="font-bold text-base tracking-wide logo-text">Performance<br><span class="text-indigo-400">Region Sumatera</span></h1>
+            <h1 class="font-bold text-base tracking-wide logo-text">Performance<br><span class="text-indigo-400">Dashboard</span></h1>
         </div>
 
         <nav class="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar">
@@ -124,8 +124,8 @@
             <div class="flex items-center gap-3">
                 <img src="https://ui-avatars.com/api/?name=AD&background=4f46e5&color=fff" alt="User" class="w-9 h-9 rounded-full border-2 border-slate-600 shrink-0">
                 <div>
-                    <p class="text-xs font-medium">RBPM - Region Sumatera</p>
-                    <p class="text-[10px] text-slate-400">Command, Write, Update, Repeat</p>
+                    <p class="text-xs font-medium">Region Sumatera</p>
+                    <p class="text-[10px] text-slate-400">Made by Love - RBPM</p>
                 </div>
             </div>
         </div>
@@ -252,6 +252,7 @@
                     <div class="relative h-52 md:h-64 w-full flex justify-center">
                         <canvas id="compositionChart"></canvas>
                     </div>
+                    <!-- Container ini akan disembunyikan via JS untuk tab MDin/Qris -->
                     <div class="mt-4 grid grid-cols-2 gap-2 text-center text-[11px] text-slate-500" id="dynamic-group-pct-labels"></div>
                 </div>
             </div>
@@ -296,7 +297,7 @@
         // KONFIGURASI PASSWORD
         // Ganti 'admin123' dengan password yang Anda inginkan
         // ==========================================
-        const DASHBOARD_PASSWORD = 'rbpm'; 
+        const DASHBOARD_PASSWORD = 'admin123'; 
 
         // Cek apakah sudah login sebelumnya (session based)
         if (sessionStorage.getItem('isLoggedIn') === 'true') {
@@ -602,7 +603,7 @@
 
         function formatToBillion(num) {
             if (!num && num !== 0) return "0";
-            return new Intl.NumberFormat('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1}).format(num/1000000000)+" M";
+            return new Intl.NumberFormat('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}).format(num/1000000000)+" M";
         }
 
         // FUNGSI BARU: Format Chart Tooltip & Label (Milyar 1 Desimal)
@@ -1112,7 +1113,7 @@
                 return{label:prod==="Sme"?"SME":prod.replace(/_/g,' '),data:dataPoints,borderColor:productColors[prod],backgroundColor:getTransparentColor(productColors[prod]),borderWidth:2,tension:0.3,pointRadius:window.innerWidth<768?2:4,pointBackgroundColor:'#ffffff',pointBorderColor:productColors[prod],pointBorderWidth:1.5};
             });
             const totalDataPoints=labels.map(month=>{let sum=0;filteredData.forEach(row=>{sum+=(row[month]||0);});return sum;});
-            datasets.push({label:'Total',data:totalDataPoints,borderColor:'#1e293b',backgroundColor:'rgba(30,41,59,0.15)',borderWidth:2.5,borderDash:[5,5],tension:0.3,pointRadius:window.innerWidth<768?2:4,pointBackgroundColor:'#ffffff',pointBorderColor:'#1e293b',pointBorderWidth:1.5});
+            datasets.push({label:'TOTAL',data:totalDataPoints,borderColor:'#1e293b',backgroundColor:'rgba(30,41,59,0.15)',borderWidth:2.5,borderDash:[5,5],tension:0.3,pointRadius:window.innerWidth<768?2:4,pointBackgroundColor:'#ffffff',pointBorderColor:'#1e293b',pointBorderWidth:1.5});
             if(charts.trend)charts.trend.destroy();
             charts.trend=new Chart(ctx,{type:'line',data:{labels:labels,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:getUnifiedLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);}}}},scales:{y:{grid:{display:false},ticks:{font:{size:9},callback:(val)=>formatChartValue(val, currentFileName)}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
         }
@@ -1169,11 +1170,17 @@
             };
 
             if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){
+                // PERBAIKAN: Sembunyikan container group percentage untuk tab MDin/Qris
+                document.getElementById('dynamic-group-pct-labels').style.display = 'none';
+
                 const last4Months=monthColumns.slice(-4).reverse();
                 const dataValues=last4Months.map(month=>{let sum=0;filteredData.forEach(row=>{sum+=(row[month]||0);});return sum;});
                 if(charts.comp)charts.comp.destroy();
                 charts.comp=new Chart(ctx,{type:'doughnut',data:{labels:last4Months,datasets:[{data:dataValues,backgroundColor:['#4f46e5','#10b981','#f59e0b','#3b82f6'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:mixLegendConfig,tooltip:{callbacks:{label:function(context){let total=context.dataset.data.reduce((a,b)=>a+b,0);let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';}}}}}});
             } else {
+                // Tampilkan kembali container group percentage untuk tab lain
+                document.getElementById('dynamic-group-pct-labels').style.display = 'grid';
+
                 const dataValues=distinctProducts.map(prod=>{let sum=0;filteredData.forEach(row=>{if(row.PRODUCT===prod)sum+=(row[lastMonth]||0);});return sum;});
                 if(charts.comp)charts.comp.destroy();
                 charts.comp=new Chart(ctx,{type:'doughnut',data:{labels:distinctProducts.map(p=>p==="Sme"?"SME":p.replace(/_/g,' ')),datasets:[{data:dataValues,backgroundColor:distinctProducts.map(p=>productColors[p]),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:mixLegendConfig,tooltip:{callbacks:{label:function(context){let total=context.dataset.data.reduce((a,b)=>a+b,0);let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';}}}}}});
