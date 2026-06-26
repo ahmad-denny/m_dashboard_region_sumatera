@@ -283,9 +283,9 @@
             </div>
 
             <!-- TAMBAHKAN mt-6 AGAR JARAKNYA SAMA SEPERTI REFERENSI GAMBAR 1 -->
-            <div class="bg-white rounded-xl p-4 md:p-6 card-shadow mt-6">
+            <div class="bg-white rounded-xl p-4 md:p-6 card-shadow mt-6" id="table-card-container">
                 <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-3">Detailed Breakdown by Product</h3>
-                <div class="overflow-x-auto w-full border border-slate-100 rounded-lg">
+                <div class="overflow-x-auto w-full border border-slate-100 rounded-lg" id="table-scroll-container">
                     <table class="w-full text-xs md:text-sm text-left text-slate-600 min-w-[500px] border-collapse table-fixed">
                         <thead class="text-[10px] md:text-xs text-slate-700 uppercase bg-slate-50 sticky top-0 z-20">
                             <tr id="dynamic-table-header-row"></tr>
@@ -607,19 +607,45 @@
             updateDashboard();
         }
 
-        // FUNGSI BARU: Toggle Charts Visibility (Icon Only)
+        // FUNGSI BARU: Toggle Charts Visibility (Icon Only + Internal Scroll Table)
         window.toggleChartsVisibility = function() {
             const wrapper = document.getElementById('charts-wrapper');
             const icon = document.getElementById('toggle-charts-icon');
+            const tableContainer = document.getElementById('table-scroll-container');
+            const mainContent = document.getElementById('main-content');
             
             if (wrapper.style.display === 'none') {
+                // SHOW CHARTS
                 wrapper.style.display = 'block';
-                // Ikon Mata Terbuka (Show)
                 icon.className = 'fa-solid fa-eye';
+                
+                // Reset scroll table ke normal
+                tableContainer.style.maxHeight = '';
+                tableContainer.style.overflowY = '';
+                mainContent.style.scrollBehavior = 'smooth';
+                mainContent.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
+                // HIDE CHARTS
                 wrapper.style.display = 'none';
-                // Ikon Mata Dicoret/Garis (Hide)
                 icon.className = 'fa-solid fa-eye-slash';
+                
+                // Hitung tinggi viewport yang tersedia untuk tabel
+                // Header utama (~84px) + KPI (~130px) + Padding/Jarak (~100px)
+                // Kita gunakan kalkulasi dinamis agar responsif
+                const headerHeight = document.querySelector('header').offsetHeight;
+                const kpiHeight = document.querySelector('.sticky.top-\\[84px\\]').offsetHeight;
+                const paddingOffset = 120; // Margin + padding total
+                
+                // Set max-height pada container tabel agar muncul scrollbar internal
+                // Kurangi sedikit agar tidak terlalu mepet bawah layar
+                const availableHeight = window.innerHeight - headerHeight - kpiHeight - paddingOffset;
+                tableContainer.style.maxHeight = `${availableHeight}px`;
+                tableContainer.style.overflowY = 'auto';
+                
+                // Smooth scroll ke bagian tabel
+                mainContent.style.scrollBehavior = 'smooth';
+                const tableCard = document.getElementById('table-card-container');
+                tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
