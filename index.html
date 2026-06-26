@@ -54,20 +54,21 @@
             th.sticky-column { background-color: #f8fafc !important; }
         }
         
-        * Style khusus untuk sticky header tabel */
+        /* Style khusus untuk sticky header tabel */
         #dynamic-table-header {
             position: sticky;
-            /* Nilai top akan diatur via JS, beri default dulu */
-            top: 300px; 
-            z-index: 15; /* Di bawah header utama & filter, tapi di atas konten tabel */
-            transition: top 0.2s ease-out; /* Agar pergerakan halus */
-            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.05); /* Opsional: bayangan tipis saat nempel */
-        }        
+            /* Sesuaikan nilai ini dengan tinggi header 'Detailed Breakdown by Product' + sedikit jarak */
+            top: 65px; 
+            z-index: 15; /* Pastikan di atas baris tabel biasa */
+            background-color: #f8fafc; /* Warna background harus sama dengan body/card agar tidak transparan */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Bayangan tipis supaya terlihat batasnya */
+        }
         
         /* Pastikan background sel header juga solid */
         #dynamic-table-header th {
             background-color: #f8fafc; 
         }
+    
     </style>
 </head>
 <body class="text-slate-800 h-screen h-[100dvh] flex overflow-hidden relative">
@@ -295,7 +296,7 @@
                         <!-- Hapus class 'sticky top-0 z-20', ganti dengan id -->
                         <thead id="dynamic-table-header" class="text-[10px] md:text-xs text-slate-700 uppercase bg-slate-50">
                             <tr id="dynamic-table-header-row"></tr>
-                        </thead>
+                        </thead>                        
                         <tbody id="data-table-body" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
@@ -366,7 +367,11 @@
                 tableHeader.style.top = `${titleHeight}px`;
             }
         }
-        
+
+// Panggil fungsi ini setiap kali window di-resize atau setelah data dimuat
+// window.addEventListener('resize', fixTableHeaderPosition);
+// Panggil juga di dalam fungsi updateDashboard() atau loadSelectedCSV() setelah render selesai
+// setTimeout(fixTableHeaderPosition, 100);         
         // Panggil fungsi ini setiap kali window di-resize atau setelah data dimuat
         window.addEventListener('resize', fixTableHeaderPosition);
         // Panggil juga di dalam fungsi updateDashboard() atau loadSelectedCSV() setelah render selesai
