@@ -778,13 +778,13 @@
             requestAnimationFrame(animation);
         }
 
-        function updateCharts() {
+function updateCharts() {
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
             
-            // 1. Update Trend Chart
+            // 1. Jalankan Update Trend Chart
             updateTrendChart();
 
-            // 2. Olah Data Komposisi Produk dari filteredData murni
+            // 2. Olah Data Komposisi Produk berdasarkan filteredData murni
             let productMap = {};
             filteredData.forEach(row => { 
                 if(row.PRODUCT) {
@@ -795,7 +795,7 @@
             let data = Object.values(productMap);
             let bgColors = labels.map(p => productColors[p] || '#cbd5e1');
 
-            // Hancurkan instance lama jika ada sebelum membuat baru agar canvas bersih total
+            // MANAGEMEN CANVAS: Hancurkan total jika objek chart lama ada
             if (charts.composition) {
                 charts.composition.destroy();
             }
@@ -817,12 +817,12 @@
                 }
             });
 
-            // 3. Update Bar Charts
+            // 3. Jalankan Update Bar Charts (Top 5)
             updateBarChart('coBranchChart', 'CO-BRANCH-CLEAN', 'coBranch');
             updateBarChart('branchChart', 'OFFICE-CLEAN', 'branch');
         }
 
-        // PERBAIKAN TREND CHART: Hancurkan & Gambar Ulang Berdasarkan filteredData
+        // PERBAIKAN TIMELINE TREND CHART
         function updateTrendChart() {
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
             let targetMonths = [...monthColumns];
@@ -830,12 +830,12 @@
                 targetMonths = targetMonths.slice(-activeTimelineMonths);
             }
 
-            // Hitung tren kumulatif HANYA dari filteredData yang sedang aktif
+            // Hitung akumulasi tren HANYA dari filteredData hasil saringan sidebar
             let trendData = targetMonths.map(m => {
                 return filteredData.reduce((sum, row) => sum + (row[m] || 0), 0);
             });
 
-            // Paksa destroy agar tidak nge-freeze/bertabrakan datanya di canvas yang sama
+            // MANAGEMEN CANVAS: Wajib destroy agar re-render tidak nge-freeze
             if (charts.trend) {
                 charts.trend.destroy();
             }
@@ -865,12 +865,12 @@
             });
         }
 
-        // PERBAIKAN BAR CHART TOP 5: Selalu Ambil Data Terfilter & Re-render Sempurna
+        // PERBAIKAN BAR CHART TOP 5 BARIS DINAMIS
         function updateBarChart(canvasId, propertyName, chartKey) {
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
             let summaryMap = {};
             
-            // Loop data dari filteredData (bukan rawData)
+            // Loop data murni dari hasil filteredData
             filteredData.forEach(row => {
                 let name = row[propertyName];
                 if(name) {
@@ -878,12 +878,12 @@
                 }
             });
 
-            // Urutkan dan ambil Top 5 besar
+            // Sorting dan potong ambil Top 5 Terbesar
             let sorted = Object.entries(summaryMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
             let labels = sorted.map(x => x[0]);
             let data = sorted.map(x => x[1]);
 
-            // Hancurkan objek chart lama agar tidak tumpang tindih data lama vs data baru
+            // MANAGEMEN CANVAS: Hancurkan instance chart lama pada key tersebut
             if (charts[chartKey]) {
                 charts[chartKey].destroy();
             }
@@ -907,8 +907,7 @@
                     }
                 }
             });
-        }                
-        
+        }        
         function updateTable() {
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
             const isBillion = ['financing.csv','funding.csv','coll.csv'].includes(currentFileName);
