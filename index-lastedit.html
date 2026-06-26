@@ -629,12 +629,18 @@
         function updateDashboard() {
             if(!lastMonth) return;
             updateKPIs();
-            updateCharts();
+            updateCharts(); // Memanggil fungsi pembaruan grafik
             updateTable();
+            setTimeout(updateTableHeaderStickyPosition, 50);
+        }
+function formatNumber(num) {
+            return new Intl.NumberFormat('id-ID').format(Math.round(num));
         }
 
-        function formatNumber(num) { return new Intl.NumberFormat('id-ID').format(Math.round(num)); }
-        function formatToBillion(num) { if (!num && num !== 0) return "0"; return new Intl.NumberFormat('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1}).format(num/1000000000)+" M"; }
+        function formatToBillion(num) {
+            if (!num && num !== 0) return "0";
+            return new Intl.NumberFormat('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1}).format(num/1000000000)+" M";
+        }
 
         function formatChartValue(num, currentFileName) {
             const isBillionFormat = ['financing.csv','funding.csv','coll.csv'].includes(currentFileName);
@@ -645,7 +651,9 @@
                 let parts = str.split(',');
                 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                 return parts.join(',') + " M";
-            } else { return formatNumber(num); }
+            } else {
+                return formatNumber(num);
+            }
         }
 
         function renderMoM(elementId, currentVal, prevVal, isBillion = false, isNPF = false, comparisonLabel = null) {
@@ -668,7 +676,11 @@
             el.innerHTML = `<i class="fa-solid ${arrow} text-[0.8em] mr-1"></i>${sign}${formattedDiff} vs ${labelText}`;
         }
 
-        function toProperCase(str) { if(!str) return "-"; if(str.toLowerCase()==="sme") return "SME"; return str.toLowerCase().replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
+        function toProperCase(str) {
+            if(!str) return "-";
+            if(str.toLowerCase()==="sme") return "SME";
+            return str.toLowerCase().replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+        }
 
         function updateKPIs() {
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
