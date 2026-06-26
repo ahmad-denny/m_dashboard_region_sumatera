@@ -42,29 +42,22 @@
         .collapsed .nav-header { justify-content: center; }
         .collapsed .logo-text { display: none; }
 
-        /* Sticky header tabel breakdown */
-        .sticky-th {
-            position: sticky !important;
-            z-index: 15;
-            background-color: #f8fafc !important; 
-            border-bottom: 2px solid #e2e8f0;
-        }
+        /* HAPUS CSS OVERRIDE LEGEND GLOBAL AGAR BISA CUSTOM PER CHART */
+        /* .chartjs-legend li span { ... } DIHAPUS */
 
         @media (max-width: 768px) {
             .sticky-column {
-                position: sticky; left: 0; background-color: #ffffff; z-index: 25 !important;
+                position: sticky; left: 0; background-color: #ffffff; z-index: 10;
                 box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
                 min-width: 130px !important; max-width: 150px !important;
             }
-            th.sticky-column { 
-                background-color: #f8fafc !important;
-                z-index: 30 !important; 
-            }
+            th.sticky-column { background-color: #f8fafc !important; }
         }
     </style>
 </head>
 <body class="text-slate-800 h-screen h-[100dvh] flex overflow-hidden relative">
 
+    <!-- LOGIN OVERLAY -->
     <div id="login-overlay" class="fixed inset-0 bg-slate-900/95 backdrop-blur-md z-[100] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-200">
             <div class="text-center mb-8">
@@ -163,9 +156,10 @@
             <div class="flex gap-1 border-b border-slate-100 -mx-4 px-4 overflow-x-auto whitespace-nowrap scrollbar-none" id="csv-tabs-container"></div>
         </header>
 
-        <div id="sticky-kpi-container" class="sticky top-[84px] md:top-[97px] z-20 bg-[#f8fafc] px-4 md:px-6 pt-3 pb-3 border-b border-slate-200/60 shadow-sm">
+        <div class="sticky top-[84px] md:top-[97px] z-20 bg-[#f8fafc] px-4 md:px-6 pt-3 pb-3 border-b border-slate-200/60 shadow-sm">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 
+                <!-- Card 1 -->
                 <div class="bg-white rounded-xl p-3 md:p-4 card-shadow border-l-4 border-indigo-500 min-w-0">
                     <div class="flex justify-between items-start gap-1">
                         <div class="min-w-0 flex-1">
@@ -182,6 +176,7 @@
                     </div>                    
                 </div>
 
+                <!-- Card 2 -->
                 <div class="bg-white rounded-xl p-3 md:p-4 card-shadow border-l-4 border-emerald-500 min-w-0">
                     <div class="flex justify-between items-start gap-1">
                         <div class="min-w-0 flex-1">
@@ -198,6 +193,7 @@
                     </div>
                 </div>
 
+                <!-- Card 3 -->
                 <div class="bg-white rounded-xl p-3 md:p-4 card-shadow border-l-4 border-amber-500 min-w-0">
                     <div class="flex justify-between items-start gap-1">
                         <div class="min-w-0 flex-1">
@@ -214,6 +210,7 @@
                     </div>
                 </div>
 
+                <!-- Card 4 -->
                 <div class="bg-white rounded-xl p-3 md:p-4 card-shadow border-l-4 border-blue-500 min-w-0">
                     <div class="flex justify-between items-start gap-1">
                         <div class="min-w-0 flex-1">
@@ -255,6 +252,7 @@
                     <div class="relative h-52 md:h-64 w-full flex justify-center">
                         <canvas id="compositionChart"></canvas>
                     </div>
+                    <!-- Container ini akan disembunyikan via JS untuk tab MDin/Qris -->
                     <div class="mt-4 grid grid-cols-2 gap-2 text-center text-[11px] text-slate-500" id="dynamic-group-pct-labels"></div>
                 </div>
             </div>
@@ -279,7 +277,7 @@
                 <h3 class="font-semibold text-sm md:text-base text-slate-700 mb-3">Detailed Breakdown by Product</h3>
                 <div class="overflow-x-auto w-full border border-slate-100 rounded-lg">
                     <table class="w-full text-xs md:text-sm text-left text-slate-600 min-w-[500px] border-collapse table-fixed">
-                        <thead id="dynamic-table-header" class="text-[10px] md:text-xs text-slate-700 uppercase bg-slate-50">
+                        <thead class="text-[10px] md:text-xs text-slate-700 uppercase bg-slate-50 sticky top-0 z-20">
                             <tr id="dynamic-table-header-row"></tr>
                         </thead>
                         <tbody id="data-table-body" class="divide-y divide-slate-100"></tbody>
@@ -295,8 +293,13 @@
     </div>
 
     <script>
+        // ==========================================
+        // KONFIGURASI PASSWORD
+        // Ganti 'admin123' dengan password yang Anda inginkan
+        // ==========================================
         const DASHBOARD_PASSWORD = 'rbpm'; 
 
+        // Cek apakah sudah login sebelumnya (session based)
         if (sessionStorage.getItem('isLoggedIn') === 'true') {
             document.getElementById('login-overlay').classList.add('hidden');
         }
@@ -309,6 +312,7 @@
             if (input.value === DASHBOARD_PASSWORD) {
                 sessionStorage.setItem('isLoggedIn', 'true');
                 document.getElementById('login-overlay').classList.add('hidden');
+                // Reload halaman untuk memicu load CSV setelah login berhasil
                 location.reload(); 
             } else {
                 errorMsg.classList.remove('hidden');
@@ -333,23 +337,7 @@
             }
         }
 
-        function updateTableHeaderStickyPosition() {
-            const kpiContainer = document.getElementById('sticky-kpi-container');
-            if (!kpiContainer) return;
-        
-            const isMobile = window.innerWidth < 768;
-            const kpiStickyTop = isMobile ? 84 : 97;
-            const kpiHeight = kpiContainer.offsetHeight;
-            const finalTopValue = kpiStickyTop + kpiHeight; 
-            
-            const thElements = document.querySelectorAll('.sticky-th');
-            thElements.forEach(th => {
-                th.style.top = `${finalTopValue}px`;
-            });
-        }
-
-        window.addEventListener('resize', updateTableHeaderStickyPosition);
-
+        // Fokus otomatis ke input password saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('isLoggedIn') !== 'true') {
                 setTimeout(() => document.getElementById('password').focus(), 500);
@@ -358,7 +346,6 @@
                 loadSelectedCSV(currentActiveFileIndex); 
                 initSidebarToggle();
                 initMobileSidebar(); 
-                updateTableHeaderStickyPosition();
             }
         });
 
@@ -380,7 +367,7 @@
         let monthColumns = [];
         let lastMonth = '';
         let prevMonth = '';
-        let prevPrevMonth = ''; 
+        let prevPrevMonth = ''; // Bulan ke-3 dari belakang (untuk growth Last Month)
         let activeTimelineMonths = 0; 
 
         const filterColumns = ['CO-BRANCH', 'OFFICE', 'PRODUCT', 'GROUP'];
@@ -395,7 +382,7 @@
             products.forEach((prod, index) => { colors[prod] = presetColors[index % presetColors.length]; });
             return colors;
         }
-        
+
         function buildCSVTabs() {
             const container = document.getElementById('csv-tabs-container');
             container.innerHTML = '';
@@ -439,11 +426,14 @@
                         updateDashboard();
                     } catch (e) {
                         console.error("Error processing data:", e);
+                        alert("Terjadi kesalahan saat memproses data. Cek console untuk detail.");
                     } finally {
                         document.getElementById('loading').style.display = 'none';
                     }
                 },
                 error: function(err) {
+                    console.error("Error loading CSV:", err);
+                    alert(`Gagal memuat berkas file: ${targetFile.file}. Pastikan file tersimpan di folder yang sama.`);
                     document.getElementById('loading').style.display = 'none';
                 }
             });
@@ -454,23 +444,20 @@
             monthColumns = Object.keys(firstRow).filter(key => !staticFields.includes(key));
             lastMonth = monthColumns[monthColumns.length - 1];
             prevMonth = monthColumns.length > 1 ? monthColumns[monthColumns.length - 2] : '';
-            prevPrevMonth = monthColumns.length > 2 ? monthColumns[monthColumns.length - 3] : ''; 
+            prevPrevMonth = monthColumns.length > 2 ? monthColumns[monthColumns.length - 3] : ''; // Ambil bulan ke-3 dari belakang
             document.getElementById('current-date').innerText = lastMonth;
             document.getElementById('kpi-latest-lbl').innerText = lastMonth;
         }
 
         function buildDynamicTableHeader() {
             const headerRow = document.getElementById('dynamic-table-header-row');
-            let headerHtml = `<th scope="col" class="sticky-th px-2 py-2 text-[10px] md:text-xs font-bold bg-slate-50 sticky-column text-left truncate">Branch</th>`;
+            let headerHtml = `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs font-bold bg-slate-50 sticky-column text-left truncate">Branch</th>`;
             distinctProducts.forEach(prod => {
                 let displayProdName = prod === "Sme" ? "SME" : prod.replace(/_/g, ' ');
-                headerHtml += `<th scope="col" class="sticky-th px-2 py-2 text-[10px] md:text-xs text-right font-bold whitespace-normal break-words max-w-[80px]" style="color: ${productColors[prod]};">${displayProdName}</th>`;
+                headerHtml += `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs text-right font-bold whitespace-normal break-words max-w-[80px]" style="color: ${productColors[prod]};">${displayProdName}</th>`;
             });
-            headerHtml += `<th scope="col" class="sticky-th px-2 py-2 text-[10px] md:text-xs text-right font-bold bg-slate-50 max-w-[90px] whitespace-normal break-words">Total Amount</th>`;
+            headerHtml += `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs text-right font-bold bg-slate-50 max-w-[90px] whitespace-normal break-words">Total Amount</th>`;
             headerRow.innerHTML = headerHtml;
-            
-            updateTableHeaderStickyPosition();
-
             const compSubLabels = document.getElementById('dynamic-group-pct-labels');
             if (compSubLabels) {
                 compSubLabels.innerHTML = groupLabels.map((grp, i) => `
@@ -589,7 +576,6 @@
                 return match;
             });
             updateDashboard();
-            setTimeout(updateTableHeaderStickyPosition, 100);
         }
 
         window.changeTimeline = function(months) {
@@ -597,57 +583,38 @@
             const ids = {0:'btn-time-all',3:'btn-time-3',6:'btn-time-6',12:'btn-time-12'};
             Object.entries(ids).forEach(([m,id]) => {
                 const btn = document.getElementById(id);
-                if(btn) {
-                    if(parseInt(m)===months) btn.className="flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-white bg-indigo-600 rounded-md transition-all";
-                    else btn.className="flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-slate-700 rounded-md hover:bg-white transition-all";
-                }
+                if(btn) { if(parseInt(m)===months) btn.className="flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-white bg-indigo-600 rounded-md transition-all"; else btn.className="flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-slate-700 rounded-md hover:bg-white transition-all"; }
             });
             updateTrendChart();
         }
 
         window.resetFilters = function() {
-            filterColumns.forEach(col => { const s = document.getElementById(`filter-${col}`); if(s) s.value = "ALL"; });
-            populateFilterOptions('CO-BRANCH', rawData);
-            populateFilterOptions('OFFICE', rawData);
-            populateFilterOptions('PRODUCT', rawData);
-            populateFilterOptions('GROUP', rawData);
-            filteredData = [...rawData];
-            activeTimelineMonths = 0;
-            const ids = {0:'btn-time-all', 3:'btn-time-3', 6:'btn-time-6', 12:'btn-time-12'};
-            Object.entries(ids).forEach(([m, id]) => {
-                const btn = document.getElementById(id);
-                if(btn) {
-                    if(parseInt(m) === 0) { btn.className = "flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-white bg-indigo-600 rounded-md transition-all"; }
-                    else { btn.className = "flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-slate-700 rounded-md hover:bg-white transition-all"; }
-                }
-            });
-            updateTrendChart();
+            filterColumns.forEach(col => { const s=document.getElementById(`filter-${col}`); if(s) s.value="ALL"; });
+            populateFilterOptions('CO-BRANCH',rawData); populateFilterOptions('OFFICE',rawData); populateFilterOptions('PRODUCT',rawData); populateFilterOptions('GROUP',rawData);
+            filteredData=[...rawData]; activeTimelineMonths=0;
+            const ids={0:'btn-time-all',3:'btn-time-3',6:'btn-time-6',12:'btn-time-12'};
+            Object.entries(ids).forEach(([m,id])=>{const btn=document.getElementById(id);if(btn){if(parseInt(m)===0)btn.className="flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-white bg-indigo-600 rounded-md transition-all";else btn.className="flex-1 sm:flex-none px-2.5 py-1 text-[11px] font-medium text-slate-700 rounded-md hover:bg-white transition-all";}});
             updateDashboard();
-            setTimeout(updateTableHeaderStickyPosition, 100);
         }
 
-        function updateDashboard() {
-            if(!lastMonth) return;
-            updateKPIs();
-            updateCharts(); // Memanggil fungsi pembaruan grafik
-            updateTable();
-            setTimeout(updateTableHeaderStickyPosition, 50);
-        }
-function formatNumber(num) {
-            return new Intl.NumberFormat('id-ID').format(Math.round(num));
-        }
+        function updateDashboard() { if(!lastMonth) return; updateKPIs(); updateCharts(); updateTable(); }
+
+        function formatNumber(num) { return new Intl.NumberFormat('id-ID').format(Math.round(num)); }
 
         function formatToBillion(num) {
             if (!num && num !== 0) return "0";
             return new Intl.NumberFormat('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1}).format(num/1000000000)+" M";
         }
 
+        // FUNGSI BARU: Format Chart Tooltip & Label (Milyar 1 Desimal)
         function formatChartValue(num, currentFileName) {
             const isBillionFormat = ['financing.csv','funding.csv','coll.csv'].includes(currentFileName);
             if (isBillionFormat) {
                 if (!num && num !== 0) return "0,0 M";
+                // Menggunakan toLocaleString manual untuk memastikan 1 desimal dan pemisah ribuan titik
                 let val = num / 1000000000;
                 let str = val.toFixed(1).replace('.', ',');
+                // Tambahkan pemisah ribuan secara manual karena toFixed menghilangkan format locale
                 let parts = str.split(',');
                 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                 return parts.join(',') + " M";
@@ -656,326 +623,634 @@ function formatNumber(num) {
             }
         }
 
+        // Fungsi Helper untuk Render MoM dalam ANGKA (Nominal)
         function renderMoM(elementId, currentVal, prevVal, isBillion = false, isNPF = false, comparisonLabel = null) {
-            const el = document.getElementById(elementId); if (!el) return;
-            if (prevVal === undefined || prevVal === null) { el.innerHTML = ''; return; }
-            let diff = currentVal - prevVal; let colorClass = ''; let arrow = '';
-            if (isNPF) {
-                if (diff < 0) { colorClass = 'text-emerald-600'; arrow = 'fa-arrow-down'; }
-                else if (diff > 0) { colorClass = 'text-rose-600'; arrow = 'fa-arrow-up'; }
-                else { colorClass = 'text-slate-400'; arrow = 'fa-minus'; }
-            } else {
-                if (diff > 0) { colorClass = 'text-emerald-600'; arrow = 'fa-arrow-up'; }
-                else if (diff < 0) { colorClass = 'text-rose-600'; arrow = 'fa-arrow-down'; }
-                else { colorClass = 'text-slate-400'; arrow = 'fa-minus'; }
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            
+            if (prevVal === undefined || prevVal === null) {
+                el.innerHTML = '';
+                return;
             }
+            
+            let diff = currentVal - prevVal;
+            
+            // Tentukan Warna Berdasarkan Jenis Tab
+            let colorClass = '';
+            let arrow = '';
+            
+            if (isNPF) {
+                // Logika NPF: Turun (-) = Bagus (Hijau), Naik (+) = Buruk (Merah)
+                if (diff < 0) {
+                    colorClass = 'text-emerald-600';
+                    arrow = 'fa-arrow-down';
+                } else if (diff > 0) {
+                    colorClass = 'text-rose-600';
+                    arrow = 'fa-arrow-up';
+                } else {
+                    colorClass = 'text-slate-400';
+                    arrow = 'fa-minus';
+                }
+            } else {
+                // Logika Normal: Naik (+) = Bagus (Hijau), Turun (-) = Buruk (Merah)
+                if (diff > 0) {
+                    colorClass = 'text-emerald-600';
+                    arrow = 'fa-arrow-up';
+                } else if (diff < 0) {
+                    colorClass = 'text-rose-600';
+                    arrow = 'fa-arrow-down';
+                } else {
+                    colorClass = 'text-slate-400';
+                    arrow = 'fa-minus';
+                }
+            }
+
             const sign = diff > 0 ? '+' : '';
             const formattedDiff = isBillion ? formatToBillion(diff) : formatNumber(diff);
+            
+            // Gunakan label kustom jika ada, jika tidak gunakan prevMonth
             const labelText = comparisonLabel || prevMonth;
+            
             el.className = `mt-1 text-[calc((0.875rem+1.125vw)*0.5)] font-medium leading-none ${colorClass}`;
             el.innerHTML = `<i class="fa-solid ${arrow} text-[0.8em] mr-1"></i>${sign}${formattedDiff} vs ${labelText}`;
         }
 
-        function toProperCase(str) {
-            if(!str) return "-";
-            if(str.toLowerCase()==="sme") return "SME";
-            return str.toLowerCase().replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+        function formatGrowthText(element,growthValue) {
+            if(!element) return; element.classList.remove('hidden');
+            if(growthValue>0){element.className="font-bold text-xs md:text-base tracking-tight mt-0.5 text-emerald-600";element.innerHTML=`<i class="fa-solid fa-arrow-up text-[10px] md:text-xs mr-0.5"></i>+${formatNumber(growthValue)}`;}
+            else if(growthValue<0){element.className="font-bold text-xs md:text-base tracking-tight mt-0.5 text-rose-600";element.innerHTML=`<i class="fa-solid fa-arrow-down text-[10px] md:text-xs mr-0.5"></i>${formatNumber(growthValue)}`;}
+            else{element.className="font-bold text-xs md:text-base tracking-tight mt-0.5 text-slate-400";element.innerHTML=`0`;}
+        }
+
+        function toProperCase(str) { if(!str) return "-"; if(str.toLowerCase()==="sme") return "SME"; return str.toLowerCase().replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
+
+        // FUNGSI UNIFIED LEGEND UNTUK TREND ANALYSIS (LINGKARAN)
+        function getUnifiedLegendConfig() {
+            return {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle', // Tetap Circle untuk Trend
+                    boxWidth: 8,
+                    padding: window.innerWidth < 768 ? 10 : 20,
+                    font: { size: window.innerWidth < 768 ? 9 : 11 },
+                    generateLabels: function(chart) {
+                        const datasets = chart.data.datasets;
+                        return datasets.map((ds, i) => ({
+                            text: ds.label,
+                            fillStyle: ds.backgroundColor,
+                            strokeStyle: ds.borderColor || ds.backgroundColor,
+                            lineWidth: 2,
+                            hidden: !chart.isDatasetVisible(i),
+                            datasetIndex: i,
+                            pointStyle: 'circle',
+                            usePointStyle: true,
+                            boxWidth: 0 
+                        }));
+                    }
+                }
+            };
+        }
+
+        // FUNGSI LEGEND KOTAK KHUSUS TOP 5 BAR CHARTS
+        function getSquareLegendConfig() {
+            return {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'rect', // Ganti jadi Kotak
+                    boxWidth: 8,
+                    padding: window.innerWidth < 768 ? 10 : 20,
+                    font: { size: window.innerWidth < 768 ? 9 : 11 },
+                    generateLabels: function(chart) {
+                        const datasets = chart.data.datasets;
+                        return datasets.map((ds, i) => ({
+                            text: ds.label,
+                            fillStyle: ds.backgroundColor,
+                            strokeStyle: ds.borderColor || ds.backgroundColor,
+                            lineWidth: 2,
+                            hidden: !chart.isDatasetVisible(i),
+                            datasetIndex: i,
+                            pointStyle: 'rect', // Paksa Kotak
+                            usePointStyle: true,
+                            boxWidth: 8 
+                        }));
+                    }
+                }
+            };
         }
 
         function updateKPIs() {
-            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            const isBillion = ['financing.csv','funding.csv','coll.csv'].includes(currentFileName);
-            const isNPF = currentFileName === 'coll.csv';
+            let groupTotals={}, productTotals={}, grandTotal=0;
+            let groupTotalsPrev={}, productTotalsPrev={}, grandTotalPrev=0;
+            groupLabels.forEach(grp=>{groupTotals[grp]=0;groupTotalsPrev[grp]=0;});
 
-            let totalCurrent = 0, totalPrev = 0, totalPrevPrev = 0;
-            let seg1Current = 0, seg1Prev = 0;
-            let seg2Current = 0, seg2Prev = 0;
-            let productVolumes = {};
+            // Variabel khusus Funding (Inisialisasi di awal agar aman)
+            let caTotal = 0, saTotal = 0, tdTotal = 0;
+            let caTotalPrev = 0, saTotalPrev = 0, tdTotalPrev = 0;
+            let caPct = 0, saPct = 0, tdPct = 0;
 
-            filteredData.forEach(row => {
-                totalCurrent += row[lastMonth] || 0;
-                if(prevMonth) totalPrev += row[prevMonth] || 0;
-                if(prevPrevMonth) totalPrevPrev += row[prevPrevMonth] || 0;
+            filteredData.forEach(row=>{
+                const val=row[lastMonth]||0;
+                const valPrev=prevMonth?(row[prevMonth]||0):0;
+                const grp=row.GROUP; const product=row.PRODUCT;
+                
+                if(grp&&groupTotals[grp]!==undefined) groupTotals[grp]+=val;
+                if(grp&&groupTotalsPrev[grp]!==undefined) groupTotalsPrev[grp]+=valPrev;
+                
+                grandTotal+=val; grandTotalPrev+=valPrev;
+                
+                // --- LOGIKA PENCARIAN CA, SA & TD YANG LEBIH KUAT ---
+                let isCA = (product === 'CA' || product === 'GIRO');
+                let isSA = (product === 'SA' || product === 'TABUNGAN');
+                let isTD = (product === 'TD' || product === 'DEPO' || product === 'DEPOSITO');
 
-                if (row.GROUP === groupLabels[0]) {
-                    seg1Current += row[lastMonth] || 0;
-                    if(prevMonth) seg1Prev += row[prevMonth] || 0;
-                } else if (row.GROUP === groupLabels[1]) {
-                    seg2Current += row[lastMonth] || 0;
-                    if(prevMonth) seg2Prev += row[prevMonth] || 0;
+                // Fallback: Jika tidak ketemu berdasarkan nama produk, cek berdasarkan Group
+                if (!isCA && !isSA && !isTD) {
+                    if (grp === 'CASA') {
+                        // Asumsi: Jika ada kata 'Giro' atau 'CA' di nama produk -> CA
+                        if (product.toUpperCase().includes('GIRO') || product.toUpperCase().includes('CA')) {
+                            isCA = true;
+                        } 
+                        // Asumsi: Sisanya adalah Tabungan/SA
+                        else {
+                            isSA = true;
+                        }
+                    } else if (grp === 'TD') {
+                        // Jika group TD tapi nama produk tidak dikenali, anggap sebagai TD
+                        isTD = true;
+                    }
                 }
 
-                if(row.PRODUCT) {
-                    productVolumes[row.PRODUCT] = (productVolumes[row.PRODUCT] || 0) + (row[lastMonth] || 0);
+                if (isCA) {
+                    caTotal += val; caTotalPrev += valPrev;
+                } else if (isSA) {
+                    saTotal += val; saTotalPrev += valPrev;
+                } else if (isTD) {
+                    tdTotal += val; tdTotalPrev += valPrev;
                 }
+
+                if(!productTotals[product]) productTotals[product]=0; productTotals[product]+=val;
+                if(!productTotalsPrev[product]) productTotalsPrev[product]=0; productTotalsPrev[product]+=valPrev;
             });
 
-            document.getElementById('kpi-total-label').innerText = isNPF ? "Total Nominal NPF" : "Total Outstanding";
-            animateNumber(document.getElementById('kpi-total'), totalCurrent, false, isBillion);
-            renderMoM('mom-total', totalCurrent, totalPrev, isBillion, isNPF);
-
-            document.getElementById('kpi-segment1-label').innerText = groupLabels[0] ? toProperCase(groupLabels[0]) : "Segment 1";
-            animateNumber(document.getElementById('kpi-segment1'), seg1Current, false, isBillion);
-            renderMoM('mom-seg1', seg1Current, seg1Prev, isBillion, isNPF);
-            let pct1 = totalCurrent > 0 ? (seg1Current / totalCurrent) * 100 : 0;
-            document.getElementById('kpi-segment1-pct').innerText = `${pct1.toFixed(1)}% Kontribusi dari Total`;
-
-            document.getElementById('kpi-segment2-label').innerText = groupLabels[1] ? toProperCase(groupLabels[1]) : "Segment 2";
-            animateNumber(document.getElementById('kpi-segment2'), seg2Current, false, isBillion);
-            renderMoM('mom-seg2', seg2Current, seg2Prev, isBillion, isNPF);
-            let pct2 = totalCurrent > 0 ? (seg2Current / totalCurrent) * 100 : 0;
-            document.getElementById('kpi-segment2-pct').innerText = `${pct2.toFixed(1)}% Kontribusi dari Total`;
-
-            if (isNPF) {
-                document.getElementById('kpi-fourth-label').innerText = "Rasio NPF Rata-Rata";
-                document.getElementById('kpi-fourth-sublabel').innerText = "Total NPF Berbanding Outstanding";
-                document.getElementById('kpi-fourth-icon').className = "fa-solid fa-gauge-high";
-                let avgNPF = filteredData.length > 0 ? (totalCurrent / filteredData.length) : 0;
-                document.getElementById('kpi-fourth-value').innerText = avgNPF.toFixed(2) + "%";
-                renderMoM('mom-fourth', totalCurrent, totalPrev, isBillion, isNPF);
-            } else {
-                document.getElementById('kpi-fourth-label').innerText = "Top Dominant Product";
-                document.getElementById('kpi-fourth-sublabel').innerText = "Berdasarkan Volume Bulan Ini";
-                document.getElementById('kpi-fourth-icon').className = "fa-solid fa-trophy";
-                let topProd = "-", maxVol = -1;
-                Object.entries(productVolumes).forEach(([p, v]) => { if (v > maxVol) { maxVol = v; topProd = p; } });
-                document.getElementById('kpi-fourth-value').innerText = toProperCase(topProd);
-                if (prevMonth) {
-                    let prevTopVol = 0;
-                    filteredData.forEach(row => { if(row.PRODUCT === topProd) prevTopVol += row[prevMonth] || 0; });
-                    renderMoM('mom-fourth', maxVol, prevTopVol, isBillion, false, `Vol ${prevMonth}`);
-                }
+            // Hitung total untuk bulan lalu (prevMonth) dan 2 bulan lalu (prevPrevMonth)
+            let prevMonthGrandTotal = 0;
+            let prevPrevMonthGrandTotal = 0;
+            
+            if (prevMonth) {
+                filteredData.forEach(row => { prevMonthGrandTotal += (row[prevMonth] || 0); });
+            }
+            
+            // Khusus untuk Last Month Booking Growth (Mei vs April)
+            if (prevPrevMonth) {
+                filteredData.forEach(row => { prevPrevMonthGrandTotal += (row[prevPrevMonth] || 0); });
             }
 
-            groupLabels.forEach((grp, i) => {
-                const lbl = document.getElementById(`comp-group-pct-${i}`);
-                if (lbl) {
-                    let grpVol = filteredData.filter(r => r.GROUP === grp).reduce((sum, r) => sum + (r[lastMonth] || 0), 0);
-                    let grpPct = totalCurrent > 0 ? (grpVol / totalCurrent) * 100 : 0;
-                    lbl.innerText = `${grpPct.toFixed(1)}%`;
-                }
-            });
+            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
+            const isBillionFormat = ['financing.csv','funding.csv','coll.csv'].includes(currentFileName);
+            const isNPF = (currentFileName === 'coll.csv');
 
-            generateAnalyticSummary(totalCurrent, totalPrev, isNPF, isBillion);
-        }
+            const kpiFourthLabel = document.getElementById('kpi-fourth-label');
+            const kpiFourthValue = document.getElementById('kpi-fourth-value');
+            const kpiFourthSublabel = document.getElementById('kpi-fourth-sublabel');
+            const kpiFourthIcon = document.getElementById('kpi-fourth-icon');
 
-        function animateNumber(element, targetValue, isPercentage = false, isBillion = false) {
-            if (!element) return;
-            const startValue = 0; 
-            const duration = 400; 
-            let startTime = null;
-            
-            function animation(currentTime) {
-                if (!startTime) startTime = currentTime;
-                const progress = Math.min((currentTime - startTime) / duration, 1);
-                const easeProgress = progress * (2 - progress);
-                const currentValue = startValue + easeProgress * (targetValue - startValue);
+            if (currentFileName === "mdin.csv") {
+                const totalMonths = monthColumns.length;
+                const m1=monthColumns[totalMonths-1]||'-'; const m2=monthColumns[totalMonths-2]||'-';
+                const m3=monthColumns[totalMonths-3]||'-'; const m4=monthColumns[totalMonths-4]||'-';
+                let totalM1=0,totalM2=0,totalM3=0,totalM4=0;
+                filteredData.forEach(row=>{if(m1!=='-')totalM1+=(row[m1]||0);if(m2!=='-')totalM2+=(row[m2]||0);if(m3!=='-')totalM3+=(row[m3]||0);if(m4!=='-')totalM4+=(row[m4]||0);});
+                document.getElementById('kpi-total-label').innerText=`Total Akusisi (${m1})`; animateNumber(document.getElementById('kpi-total'),totalM1);
+                document.getElementById('kpi-segment1-label').innerText=`Total Akusisi (${m2})`; animateNumber(document.getElementById('kpi-segment1'),totalM2);
+                document.getElementById('kpi-segment1-pct').innerHTML=`<span class="text-slate-400 font-normal text-[9px]">Posisi 2 Bulan Terakhir</span>`;
+                document.getElementById('kpi-segment2-label').innerText=`Total Akusisi (${m3})`; animateNumber(document.getElementById('kpi-segment2'),totalM3);
+                document.getElementById('kpi-segment2-pct').innerHTML=`<span class="text-slate-400 font-normal text-[9px]">Posisi 3 Bulan Terakhir</span>`;
+                kpiFourthLabel.innerText=`Total Akusisi (${m4})`; kpiFourthValue.innerText=formatNumber(totalM4);
+                kpiFourthSublabel.className="text-slate-400 not-italic truncate"; kpiFourthSublabel.innerText="Posisi 4 bulan terakhir";
+                kpiFourthIcon.className="fa-solid fa-calendar-check";
+                document.getElementById('mix-chart-title').innerText="Acquisition Trend (4 Months)";
+                ['mom-total','mom-seg1','mom-seg2','mom-fourth'].forEach(id => document.getElementById(id).innerHTML='');
+
+            } else if (currentFileName === "financing.csv") {
+                document.getElementById('kpi-total-label').innerText = "Total Booking";
+                if(isBillionFormat){document.getElementById('kpi-total').innerText=formatToBillion(grandTotal);}else{animateNumber(document.getElementById('kpi-total'),grandTotal);}
+                renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
+
+                const g1=groupLabels[0]; const g2=groupLabels[1];
+                const g1Pct=grandTotal?((groupTotals[g1]/grandTotal)*100):0;
+                const g2Pct=grandTotal?((groupTotals[g2]/grandTotal)*100):0;
+
+                document.getElementById('kpi-segment1-label').innerText=g1?`Total ${g1}`:'Segment 1';
+                if(isBillionFormat){document.getElementById('kpi-segment1').innerText=g1?formatToBillion(groupTotals[g1]):"0";}else{animateNumber(document.getElementById('kpi-segment1'),g1?groupTotals[g1]:0);}
+                renderMoM('mom-seg1', g1?groupTotals[g1]:0, g1?groupTotalsPrev[g1]:0, isBillionFormat, isNPF);
+                document.getElementById('kpi-segment1-pct').innerHTML=`<span id="anim-g1-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g1-pct'),g1Pct,true);
+
+                document.getElementById('kpi-segment2-label').innerText=g2?`Total ${g2}`:'Segment 2';
+                if(isBillionFormat){document.getElementById('kpi-segment2').innerText=g2?formatToBillion(groupTotals[g2]):"0";}else{animateNumber(document.getElementById('kpi-segment2'),g2?groupTotals[g2]:0);}
+                renderMoM('mom-seg2', g2?groupTotals[g2]:0, g2?groupTotalsPrev[g2]:0, isBillionFormat, isNPF);
+                document.getElementById('kpi-segment2-pct').innerHTML=`<span id="anim-g2-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g2-pct'),g2Pct,true);
+
+                // PERBAIKAN: Last Month Booking Growth = Mei (prevMonth) vs April (prevPrevMonth)
+                kpiFourthLabel.innerText = "Last Month Booking";
+                kpiFourthValue.innerText = isBillionFormat ? formatToBillion(prevMonthGrandTotal) : formatNumber(prevMonthGrandTotal);
+                kpiFourthSublabel.className = "text-slate-400 not-italic truncate";
+                kpiFourthSublabel.innerText = prevMonth || '-';
+                kpiFourthIcon.className = "fa-solid fa-book-open";
                 
-                if (isPercentage) {
-                    element.innerText = currentValue.toFixed(1) + '%';
+                // Render MoM menggunakan prevPrevMonth sebagai pembanding DAN label kustom
+                renderMoM('mom-fourth', prevMonthGrandTotal, prevPrevMonthGrandTotal, isBillionFormat, isNPF, prevPrevMonth);
+
+            } else if (currentFileName === "funding.csv") {
+                // KHUSUS TAB FUNDING
+                document.getElementById('kpi-total-label').innerText = "Total Funding";
+                if(isBillionFormat){document.getElementById('kpi-total').innerText=formatToBillion(grandTotal);}else{animateNumber(document.getElementById('kpi-total'),grandTotal);}
+                renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
+
+                // Card 2: CA (Giro)
+                document.getElementById('kpi-segment1-label').innerText = "Total CA (Giro)";
+                if(isBillionFormat){document.getElementById('kpi-segment1').innerText=formatToBillion(caTotal);}else{animateNumber(document.getElementById('kpi-segment1'),caTotal);}
+                renderMoM('mom-seg1', caTotal, caTotalPrev, isBillionFormat, isNPF);
+                caPct = grandTotal ? ((caTotal/grandTotal)*100) : 0;
+                document.getElementById('kpi-segment1-pct').innerHTML=`<span id="anim-ca-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-ca-pct'),caPct,true);
+
+                // Card 3: SA (Tabungan)
+                document.getElementById('kpi-segment2-label').innerText = "Total SA (Tabungan)";
+                if(isBillionFormat){document.getElementById('kpi-segment2').innerText=formatToBillion(saTotal);}else{animateNumber(document.getElementById('kpi-segment2'),saTotal);}
+                renderMoM('mom-seg2', saTotal, saTotalPrev, isBillionFormat, isNPF);
+                saPct = grandTotal ? ((saTotal/grandTotal)*100) : 0;
+                document.getElementById('kpi-segment2-pct').innerHTML=`<span id="anim-sa-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-sa-pct'),saPct,true);
+
+                // Card 4: TOTAL TD
+                kpiFourthLabel.innerText = "Total TD";
+                kpiFourthSublabel.className = "text-slate-400 not-italic truncate";
+                
+                if(isBillionFormat){
+                    kpiFourthValue.innerText = formatToBillion(tdTotal);
                 } else {
-                    element.innerText = isBillion ? formatToBillion(currentValue) : formatNumber(currentValue);
+                    animateNumber(kpiFourthValue, tdTotal);
                 }
+                renderMoM('mom-fourth', tdTotal, tdTotalPrev, isBillionFormat, isNPF);
                 
-                if (progress < 1) { 
-                    requestAnimationFrame(animation); 
-                } else {
-                    if (isPercentage) { 
-                        element.innerText = targetValue.toFixed(1) + '%'; 
-                    } else { 
-                        element.innerText = isBillion ? formatToBillion(targetValue) : formatNumber(targetValue); 
-                    }
-                }
-            }
-            requestAnimationFrame(animation);
-        }
-
-function updateCharts() {
-            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            
-            // 1. Jalankan Update Trend Chart
-            updateTrendChart();
-
-            // 2. Olah Data Komposisi Produk berdasarkan filteredData murni
-            let productMap = {};
-            filteredData.forEach(row => { 
-                if(row.PRODUCT) {
-                    productMap[row.PRODUCT] = (productMap[row.PRODUCT] || 0) + (row[lastMonth] || 0); 
-                }
-            });
-            let labels = Object.keys(productMap);
-            let data = Object.values(productMap);
-            let bgColors = labels.map(p => productColors[p] || '#cbd5e1');
-
-            // MANAGEMEN CANVAS: Hancurkan total jika objek chart lama ada
-            if (charts.composition) {
-                charts.composition.destroy();
-            }
-
-            const ctxComp = document.getElementById('compositionChart').getContext('2d');
-            charts.composition = new Chart(ctxComp, {
-                type: 'doughnut',
-                data: {
-                    labels: labels.map(l => toProperCase(l)),
-                    datasets: [{ data: data, backgroundColor: bgColors, borderColor: '#ffffff', borderWidth: 2 }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
-                        tooltip: { callbacks: { label: (ctx) => ` Vol: ${formatChartValue(ctx.raw, currentFileName)}` } }
-                    },
-                    cutout: '65%'
-                }
-            });
-
-            // 3. Jalankan Update Bar Charts (Top 5)
-            updateBarChart('coBranchChart', 'CO-BRANCH-CLEAN', 'coBranch');
-            updateBarChart('branchChart', 'OFFICE-CLEAN', 'branch');
-        }
-
-        // PERBAIKAN TIMELINE TREND CHART
-        function updateTrendChart() {
-            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            let targetMonths = [...monthColumns];
-            if (activeTimelineMonths > 0) {
-                targetMonths = targetMonths.slice(-activeTimelineMonths);
-            }
-
-            // Hitung akumulasi tren HANYA dari filteredData hasil saringan sidebar
-            let trendData = targetMonths.map(m => {
-                return filteredData.reduce((sum, row) => sum + (row[m] || 0), 0);
-            });
-
-            // MANAGEMEN CANVAS: Wajib destroy agar re-render tidak nge-freeze
-            if (charts.trend) {
-                charts.trend.destroy();
-            }
-
-            const ctxTrend = document.getElementById('trendChart').getContext('2d');
-            charts.trend = new Chart(ctxTrend, {
-                type: 'line',
-                data: {
-                    labels: targetMonths,
-                    datasets: [{
-                        label: 'Volume Performa', data: trendData,
-                        borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.05)',
-                        borderWidth: 2.5, fill: true, tension: 0.15, pointRadius: 3, pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: { callbacks: { label: (ctx) => ` Total: ${formatChartValue(ctx.raw, currentFileName)}` } }
-                    },
-                    scales: {
-                        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 9 }, callback: (v) => formatChartValue(v, currentFileName) } },
-                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
-                    }
-                }
-            });
-        }
-
-        // PERBAIKAN BAR CHART TOP 5 BARIS DINAMIS
-        function updateBarChart(canvasId, propertyName, chartKey) {
-            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            let summaryMap = {};
-            
-            // Loop data murni dari hasil filteredData
-            filteredData.forEach(row => {
-                let name = row[propertyName];
-                if(name) {
-                    summaryMap[name] = (summaryMap[name] || 0) + (row[lastMonth] || 0);
-                }
-            });
-
-            // Sorting dan potong ambil Top 5 Terbesar
-            let sorted = Object.entries(summaryMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-            let labels = sorted.map(x => x[0]);
-            let data = sorted.map(x => x[1]);
-
-            // MANAGEMEN CANVAS: Hancurkan instance chart lama pada key tersebut
-            if (charts[chartKey]) {
-                charts[chartKey].destroy();
-            }
-
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            charts[chartKey] = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{ data: data, backgroundColor: '#3b82f6', borderRadius: 4, barThickness: 15 }]
-                },
-                options: {
-                    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: { callbacks: { label: (ctx) => ` Volume: ${formatChartValue(ctx.raw, currentFileName)}` } }
-                    },
-                    scales: {
-                        x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 9 }, callback: (v) => formatChartValue(v, currentFileName) } },
-                        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
-                    }
-                }
-            });
-        }        
-        function updateTable() {
-            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            const isBillion = ['financing.csv','funding.csv','coll.csv'].includes(currentFileName);
-            
-            let branchSummary = {};
-            filteredData.forEach(row => {
-                let br = row['OFFICE-CLEAN']; if(!br) return;
-                if(!branchSummary[br]) {
-                    branchSummary[br] = { name: br, total: 0 };
-                    distinctProducts.forEach(p => branchSummary[br][p] = 0);
-                }
-                branchSummary[br][row.PRODUCT] += row[lastMonth] || 0;
-                branchSummary[br].total += row[lastMonth] || 0;
-            });
-
-            let sortedBranches = Object.values(branchSummary).sort((a,b) => b.total - a.total);
-            const tbody = document.getElementById('data-table-body');
-            tbody.innerHTML = '';
-            
-            const fragment = document.createDocumentFragment();
-            sortedBranches.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/80 transition-colors";
+                // Update sublabel dengan persentase yang benar
+                tdPct = grandTotal ? ((tdTotal/grandTotal)*100) : 0;
+                kpiFourthSublabel.innerText = `${tdPct.toFixed(1)}% dari total`;
                 
-                let productCellsHtml = '';
-                distinctProducts.forEach(prod => {
-                    let val = item[prod] || 0;
-                    let displayVal = isBillion ? formatToBillion(val) : formatNumber(val);
-                    if(val === 0) displayVal = "-";
-                    productCellsHtml += `<td class="px-2 py-2.5 text-right font-mono text-[11px] text-slate-600 truncate">${displayVal}</td>`;
+                // Ganti ikon trophy menjadi ikon deposito/stack
+                kpiFourthIcon.className = "fa-solid fa-coins";
+
+            } else if (currentFileName === "haji.csv") {
+                // KHUSUS TAB HAJJ
+                document.getElementById('kpi-total-label').innerText = "Total Porsi";
+                // Data haji biasanya tidak dalam milyar, jadi gunakan formatNumber biasa
+                animateNumber(document.getElementById('kpi-total'), grandTotal);
+                renderMoM('mom-total', grandTotal, grandTotalPrev, false, isNPF);
+
+                const g1=groupLabels[0]; const g2=groupLabels[1];
+                const g1Pct=grandTotal?((groupTotals[g1]/grandTotal)*100):0;
+                const g2Pct=grandTotal?((groupTotals[g2]/grandTotal)*100):0;
+
+                document.getElementById('kpi-segment1-label').innerText=g1?`Total ${g1}`:'Segment 1';
+                animateNumber(document.getElementById('kpi-segment1'), g1?groupTotals[g1]:0);
+                renderMoM('mom-seg1', g1?groupTotals[g1]:0, g1?groupTotalsPrev[g1]:0, false, isNPF);
+                document.getElementById('kpi-segment1-pct').innerHTML=`<span id="anim-g1-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g1-pct'),g1Pct,true);
+
+                document.getElementById('kpi-segment2-label').innerText=g2?`Total ${g2}`:'Segment 2';
+                animateNumber(document.getElementById('kpi-segment2'), g2?groupTotals[g2]:0);
+                renderMoM('mom-seg2', g2?groupTotals[g2]:0, g2?groupTotalsPrev[g2]:0, false, isNPF);
+                document.getElementById('kpi-segment2-pct').innerHTML=`<span id="anim-g2-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g2-pct'),g2Pct,true);
+
+                // PERUBAHAN: Last Month Porsi Growth = Mei (prevMonth) vs April (prevPrevMonth)
+                kpiFourthLabel.innerText = "Last Month Porsi";
+                kpiFourthValue.innerText = formatNumber(prevMonthGrandTotal);
+                kpiFourthSublabel.className = "text-slate-400 not-italic truncate";
+                kpiFourthSublabel.innerText = prevMonth || '-';
+                kpiFourthIcon.className = "fa-solid fa-book-open";
+                
+                // Render MoM menggunakan prevPrevMonth sebagai pembanding DAN label kustom
+                renderMoM('mom-fourth', prevMonthGrandTotal, prevPrevMonthGrandTotal, false, isNPF, prevPrevMonth);
+
+            } else if (currentFileName === "qris.csv") {
+                // PERUBAHAN: KHUSUS TAB QRIS (MENYERUPAI MDIN)
+                const totalMonths = monthColumns.length;
+                const m1 = monthColumns[totalMonths - 1] || '-';
+                const m2 = monthColumns[totalMonths - 2] || '-';
+                const m3 = monthColumns[totalMonths - 3] || '-';
+                const m4 = monthColumns[totalMonths - 4] || '-';
+
+                let totalM1 = 0, totalM2 = 0, totalM3 = 0, totalM4 = 0;
+                filteredData.forEach(row => {
+                    if (m1 !== '-') totalM1 += (row[m1] || 0);
+                    if (m2 !== '-') totalM2 += (row[m2] || 0);
+                    if (m3 !== '-') totalM3 += (row[m3] || 0);
+                    if (m4 !== '-') totalM4 += (row[m4] || 0);
                 });
 
-                let totalDisplay = isBillion ? formatToBillion(item.total) : formatNumber(item.total);
-                tr.innerHTML = `<td class="px-2 py-2.5 font-medium sticky-column"><a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1 text-xs"><i class="fa-solid fa-filter text-[9px] opacity-40"></i> ${item.name}</a></td>${productCellsHtml}<td class="px-2 py-2.5 text-right font-mono font-bold text-slate-800 text-xs">${totalDisplay}</td>`;
+                // Card 1: Total Akusisi Bulan Berjalan
+                document.getElementById('kpi-total-label').innerText = `TOTAL AKUSISI (${m1})`;
+                animateNumber(document.getElementById('kpi-total'), totalM1);
+                document.getElementById('kpi-latest-lbl').innerText = m1;
+
+                // Card 2: Total Akusisi 1 Bulan Sebelumnya
+                document.getElementById('kpi-segment1-label').innerText = `TOTAL AKUSISI (${m2})`;
+                animateNumber(document.getElementById('kpi-segment1'), totalM2);
+                document.getElementById('kpi-segment1-pct').innerHTML = `<span class="text-slate-400 font-normal text-[9px]">Posisi 2 Bulan Terakhir</span>`;
+
+                // Card 3: Total Akusisi 2 Bulan Sebelumnya
+                document.getElementById('kpi-segment2-label').innerText = `TOTAL AKUSISI (${m3})`;
+                animateNumber(document.getElementById('kpi-segment2'), totalM3);
+                document.getElementById('kpi-segment2-pct').innerHTML = `<span class="text-slate-400 font-normal text-[9px]">Posisi 3 Bulan Terakhir</span>`;
+
+                // Card 4: Total Akusisi 3 Bulan Sebelumnya
+                kpiFourthLabel.innerText = `TOTAL AKUSISI (${m4})`;
+                kpiFourthValue.innerText = formatNumber(totalM4);
+                kpiFourthSublabel.className = "text-slate-400 not-italic truncate";
+                kpiFourthSublabel.innerText = "Posisi 4 bulan terakhir";
+                kpiFourthIcon.className = "fa-solid fa-calendar-check";
+
+                // Sembunyikan semua indikator MoM karena format MDin tidak menggunakannya
+                ['mom-total','mom-seg1','mom-seg2','mom-fourth'].forEach(id => document.getElementById(id).innerHTML='');
+                
+                // Ubah judul chart mix menjadi Acquisition Trend
+                document.getElementById('mix-chart-title').innerText = "Acquisition Trend (4 Months)";
+
+            } else if (currentFileName === "coll.csv") {
+                // PERUBAHAN: KHUSUS TAB NPF (LAST MONTH OUTSTANDING)
+                document.getElementById('kpi-total-label').innerText = "Total Outstanding";
+                if(isBillionFormat){document.getElementById('kpi-total').innerText=formatToBillion(grandTotal);}else{animateNumber(document.getElementById('kpi-total'),grandTotal);}
+                renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
+
+                const g1=groupLabels[0]; const g2=groupLabels[1];
+                const g1Pct=grandTotal?((groupTotals[g1]/grandTotal)*100):0;
+                const g2Pct=grandTotal?((groupTotals[g2]/grandTotal)*100):0;
+
+                document.getElementById('kpi-segment1-label').innerText=g1?`Total ${g1}`:'Segment 1';
+                if(isBillionFormat){document.getElementById('kpi-segment1').innerText=g1?formatToBillion(groupTotals[g1]):"0";}else{animateNumber(document.getElementById('kpi-segment1'),g1?groupTotals[g1]:0);}
+                renderMoM('mom-seg1', g1?groupTotals[g1]:0, g1?groupTotalsPrev[g1]:0, isBillionFormat, isNPF);
+                document.getElementById('kpi-segment1-pct').innerHTML=`<span id="anim-g1-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g1-pct'),g1Pct,true);
+
+                document.getElementById('kpi-segment2-label').innerText=g2?`Total ${g2}`:'Segment 2';
+                if(isBillionFormat){document.getElementById('kpi-segment2').innerText=g2?formatToBillion(groupTotals[g2]):"0";}else{animateNumber(document.getElementById('kpi-segment2'),g2?groupTotals[g2]:0);}
+                renderMoM('mom-seg2', g2?groupTotals[g2]:0, g2?groupTotalsPrev[g2]:0, isBillionFormat, isNPF);
+                document.getElementById('kpi-segment2-pct').innerHTML=`<span id="anim-g2-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g2-pct'),g2Pct,true);
+
+                // PERUBAHAN: Last Month Outstanding Growth = Mei (prevMonth) vs April (prevPrevMonth)
+                kpiFourthLabel.innerText = "Last Month Outstanding";
+                kpiFourthValue.innerText = isBillionFormat ? formatToBillion(prevMonthGrandTotal) : formatNumber(prevMonthGrandTotal);
+                kpiFourthSublabel.className = "text-slate-400 not-italic truncate";
+                kpiFourthSublabel.innerText = prevMonth || '-';
+                kpiFourthIcon.className = "fa-solid fa-book-open";
+                
+                // Render MoM menggunakan prevPrevMonth sebagai pembanding DAN label kustom
+                renderMoM('mom-fourth', prevMonthGrandTotal, prevPrevMonthGrandTotal, isBillionFormat, isNPF, prevPrevMonth);
+
+            } else {
+                // DEFAULT UNTUK TAB LAINNYA
+                kpiFourthLabel.innerText = "Top Dominant Product";
+                kpiFourthSublabel.className = "text-slate-400 italic truncate";
+                kpiFourthSublabel.innerText = "By Volume Month";
+                kpiFourthIcon.className = "fa-solid fa-trophy";
+
+                let totalLabelText = "Total Outstanding";
+                if(currentFileName==="pembiayaan.csv") totalLabelText="Total Booking";
+                document.getElementById('kpi-total-label').innerText = totalLabelText;
+
+                if(isBillionFormat){document.getElementById('kpi-total').innerText=formatToBillion(grandTotal);}else{animateNumber(document.getElementById('kpi-total'),grandTotal);}
+                renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
+
+                const g1=groupLabels[0]; const g2=groupLabels[1];
+                const g1Pct=grandTotal?((groupTotals[g1]/grandTotal)*100):0;
+                const g2Pct=grandTotal?((groupTotals[g2]/grandTotal)*100):0;
+
+                document.getElementById('kpi-segment1-label').innerText=g1?`Total ${g1}`:'Segment 1';
+                if(isBillionFormat){document.getElementById('kpi-segment1').innerText=g1?formatToBillion(groupTotals[g1]):"0";}else{animateNumber(document.getElementById('kpi-segment1'),g1?groupTotals[g1]:0);}
+                renderMoM('mom-seg1', g1?groupTotals[g1]:0, g1?groupTotalsPrev[g1]:0, isBillionFormat, isNPF);
+                document.getElementById('kpi-segment1-pct').innerHTML=`<span id="anim-g1-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g1-pct'),g1Pct,true);
+
+                document.getElementById('kpi-segment2-label').innerText=g2?`Total ${g2}`:'Segment 2';
+                if(isBillionFormat){document.getElementById('kpi-segment2').innerText=g2?formatToBillion(groupTotals[g2]):"0";}else{animateNumber(document.getElementById('kpi-segment2'),g2?groupTotals[g2]:0);}
+                renderMoM('mom-seg2', g2?groupTotals[g2]:0, g2?groupTotalsPrev[g2]:0, isBillionFormat, isNPF);
+                document.getElementById('kpi-segment2-pct').innerHTML=`<span id="anim-g2-pct">0%</span> <span class="text-[9px] text-slate-400 font-normal">dari total</span>`;
+                animateNumber(document.getElementById('anim-g2-pct'),g2Pct,true);
+
+                let topProduct="-"; let maxVal=0;
+                for(const[prod,total]of Object.entries(productTotals)){if(total>maxVal){maxVal=total;topProduct=prod;}}
+                kpiFourthValue.innerText = toProperCase(topProduct);
+                renderMoM('mom-fourth', maxVal, productTotalsPrev[topProduct]||0, isBillionFormat, isNPF);
+
+                document.getElementById('mix-chart-title').innerText="Product Mix (Latest Month)";
+            }
+
+            groupLabels.forEach((grp,idx)=>{
+                const element=document.getElementById(`comp-group-pct-${idx}`);
+                if(element){
+                    let pct=0;
+                    if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){
+                        const last4Months=monthColumns.slice(-4); let grp4MTotal=0; let all4MTotal=0;
+                        filteredData.forEach(row=>{last4Months.forEach(m=>{const val=row[m]||0;if(row.GROUP===grp)grp4MTotal+=val;all4MTotal+=val;});});
+                        pct=all4MTotal?((grp4MTotal/all4MTotal)*100):0;
+                    } else { pct=grandTotal?((groupTotals[grp]/grandTotal)*100):0; }
+                    animateNumber(element,pct,true);
+                }
+            });
+
+            let officeTotals={};
+            filteredData.forEach(row=>{const office=row['OFFICE-CLEAN'];if(office)officeTotals[office]=(officeTotals[office]||0)+(row[lastMonth]||0);});
+            let topOffice="-"; let maxOfficeVal=0;
+            for(const[off,total]of Object.entries(officeTotals)){if(total>maxOfficeVal){maxOfficeVal=total;topOffice=off;}}
+            const selectedGroup=document.getElementById('filter-GROUP')?.value||'ALL';
+            const selectedOffice=document.getElementById('filter-OFFICE')?.value||'ALL';
+            let summaryText="";
+            if(grandTotal===0){summaryText="Tidak ada data yang tersedia untuk kombinasi filter yang Anda pilih saat ini.";}
+            else{
+                let currentLabelTitle=(currentFileName==="mdin.csv" || currentFileName==="qris.csv")?"Total Akusisi":document.getElementById('kpi-total-label').innerText;
+                summaryText=`Hingga posisi data <b>${lastMonth}</b>, nilai dari <b>${currentLabelTitle}</b> secara keseluruhan mencapai <b>${isBillionFormat?formatToBillion(grandTotal):formatNumber(grandTotal)}</b>. `;
+                if(currentFileName!=="mdin.csv" && currentFileName!=="qris.csv"){
+                    if (currentFileName === "funding.csv") {
+                         summaryText += `Komposisi dana didominasi oleh <b>SA (Tabungan)</b> sebesar <b>${saPct.toFixed(1)}%</b>, <b>TD</b> sebesar <b>${tdPct.toFixed(1)}%</b>, dan <b>CA (Giro)</b> sebesar <b>${caPct.toFixed(1)}%</b>. `;
+                    } else if (currentFileName === "haji.csv") {
+                        summaryText += `Porsi bulan lalu (<b>${prevMonth}</b>) tercatat sebesar <b>${formatNumber(prevMonthGrandTotal)}</b> porsi. `;
+                    } else if (currentFileName === "coll.csv") {
+                        summaryText += `Outstanding bulan lalu (<b>${prevMonth}</b>) tercatat sebesar <b>${isBillionFormat?formatToBillion(prevMonthGrandTotal):formatNumber(prevMonthGrandTotal)}</b>. `;
+                    } else {
+                        const g1=groupLabels[0]; const g2=groupLabels[1];
+                        const g1Pct=grandTotal?((groupTotals[g1]/grandTotal)*100):0;
+                        const g2Pct=grandTotal?((groupTotals[g2]/grandTotal)*100):0;
+                        if(selectedGroup!=='ALL'){summaryText+=`Pada segmen portofolio <b>${selectedGroup}</b>, `;}
+                        else{summaryText+=`Secara keseluruhan, kontribusi didominasi oleh segmen <b>${g1}</b> (${g1Pct.toFixed(1)}%) diikuti oleh <b>${g2}</b> (${g2Pct.toFixed(1)}%). `;}
+                        if(currentFileName==="financing.csv"){summaryText+=`Booking bulan lalu (<b>${prevMonth}</b>) tercatat sebesar <b>${isBillionFormat?formatToBillion(prevMonthGrandTotal):formatNumber(prevMonthGrandTotal)}</b>. `;}
+                        else{summaryText+=`Produk yang mencatat volume tertinggi adalah <b>${toProperCase(kpiFourthValue.innerText)}</b>. `;}
+                    }
+                }
+                if(selectedOffice==='ALL'){summaryText+=`Adapun pusat aktivitas bisnis dengan performa kontribusi paling masif berada di bawah kelolaan cabang <b>${topOffice}</b> dengan nominal sebesar <b>${isBillionFormat?formatToBillion(maxOfficeVal):formatNumber(maxOfficeVal)}</b>.`;}
+                else{summaryText+=`Khusus untuk wilayah unit kerja <b>${selectedOffice}</b>, performa berjalan stabil disokong oleh lini produk andalannya.`;}
+            }
+            document.getElementById('analytics-text-summary').innerHTML=summaryText;
+        }
+
+        function updateCharts(){updateTrendChart();updateCompositionChart();updateCoBranchChart();updateBranchChart();}
+
+        function updateTrendChart(){
+            const ctx=document.getElementById('trendChart').getContext('2d');
+            let labels=[...monthColumns]; if(activeTimelineMonths>0){labels=labels.slice(-activeTimelineMonths);}
+            document.getElementById('trend-title').innerText=`Trend Analysis (${labels[0]} to ${labels[labels.length-1]})`;
+            const getTransparentColor=(hex)=>{if(!hex||!hex.startsWith('#'))return'rgba(0,0,0,0.15)';const r=parseInt(hex.slice(1,3),16);const g=parseInt(hex.slice(3,5),16);const b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},0.15)`;};
+            
+            const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
+
+            const datasets=distinctProducts.map(prod=>{
+                const dataPoints=labels.map(month=>{let sum=0;filteredData.forEach(row=>{if(row.PRODUCT===prod)sum+=(row[month]||0);});return sum;});
+                return{label:prod==="Sme"?"SME":prod.replace(/_/g,' '),data:dataPoints,borderColor:productColors[prod],backgroundColor:getTransparentColor(productColors[prod]),borderWidth:2,tension:0.3,pointRadius:window.innerWidth<768?2:4,pointBackgroundColor:'#ffffff',pointBorderColor:productColors[prod],pointBorderWidth:1.5};
+            });
+
+            // PERUBAHAN: Hanya tambahkan dataset TOTAL jika BUKAN tab MDin
+            if (currentFileName !== "mdin.csv") {
+                const totalDataPoints=labels.map(month=>{let sum=0;filteredData.forEach(row=>{sum+=(row[month]||0);});return sum;});
+                datasets.push({label:'TOTAL',data:totalDataPoints,borderColor:'#1e293b',backgroundColor:'rgba(30,41,59,0.15)',borderWidth:2.5,borderDash:[5,5],tension:0.3,pointRadius:window.innerWidth<768?2:4,pointBackgroundColor:'#ffffff',pointBorderColor:'#1e293b',pointBorderWidth:1.5});
+            }
+
+            if(charts.trend)charts.trend.destroy();
+            charts.trend=new Chart(ctx,{type:'line',data:{labels:labels,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:getUnifiedLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);}}}},scales:{y:{grid:{display:false},ticks:{font:{size:9},callback:(val)=>formatChartValue(val, currentFileName)}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
+        }
+
+        function updateCompositionChart(){
+            const ctx=document.getElementById('compositionChart').getContext('2d');
+            const currentFileName=csvFilesConfig[currentActiveFileIndex].file;
+            const getTransparentColor=(hex)=>{if(!hex||!hex.startsWith('#'))return'rgba(0,0,0,0.15)';const r=parseInt(hex.slice(1,3),16);const g=parseInt(hex.slice(3,5),16);const b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},0.15)`;};
+            
+            // Konfigurasi Legend Strikethrough
+            const mixLegendConfig = {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: window.innerWidth < 768 ? 10 : 20,
+                    boxWidth: 8,
+                    font: { size: window.innerWidth < 768 ? 9 : 11 },
+                    generateLabels: function(chart) {
+                        const data = chart.data;
+                        if (data.labels.length && data.datasets.length) {
+                            const dataset = data.datasets[0];
+                            return data.labels.map((label, i) => {
+                                const meta = chart.getDatasetMeta(0);
+                                const baseColor = dataset.backgroundColor[i];
+                                return {
+                                    text: label,
+                                    index: i,
+                                    pointStyle: 'circle',
+                                    fillStyle: getTransparentColor(baseColor),
+                                    strokeStyle: baseColor,
+                                    lineWidth: 2,
+                                    hidden: isNaN(dataset.data[i]) || meta.data[i].hidden,
+                                    // Tambahkan properti strikethrough jika hidden
+                                    textDecoration: meta.data[i].hidden ? 'line-through' : 'none'
+                                };
+                            });
+                        }
+                        return [];
+                    }
+                },
+                // PERBAIKAN: Menambahkan onClick handler untuk strikethrough
+                onClick: function(e, legendItem, legend) {
+                    const index = legendItem.index;
+                    const ci = legend.chart;
+                    const meta = ci.getDatasetMeta(0);
+                    
+                    // Toggle visibility
+                    meta.data[index].hidden = !meta.data[index].hidden;
+                    
+                    // Update chart
+                    ci.update();
+                }
+            };
+
+            if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){
+                // PERBAIKAN: Sembunyikan container group percentage untuk tab MDin/Qris
+                document.getElementById('dynamic-group-pct-labels').style.display = 'none';
+
+                const last4Months=monthColumns.slice(-4).reverse();
+                const dataValues=last4Months.map(month=>{let sum=0;filteredData.forEach(row=>{sum+=(row[month]||0);});return sum;});
+                if(charts.comp)charts.comp.destroy();
+                charts.comp=new Chart(ctx,{type:'doughnut',data:{labels:last4Months,datasets:[{data:dataValues,backgroundColor:['#4f46e5','#10b981','#f59e0b','#3b82f6'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:mixLegendConfig,tooltip:{callbacks:{label:function(context){let total=context.dataset.data.reduce((a,b)=>a+b,0);let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';}}}}}});
+            } else {
+                // Tampilkan kembali container group percentage untuk tab lain
+                document.getElementById('dynamic-group-pct-labels').style.display = 'grid';
+
+                const dataValues=distinctProducts.map(prod=>{let sum=0;filteredData.forEach(row=>{if(row.PRODUCT===prod)sum+=(row[lastMonth]||0);});return sum;});
+                if(charts.comp)charts.comp.destroy();
+                charts.comp=new Chart(ctx,{type:'doughnut',data:{labels:distinctProducts.map(p=>p==="Sme"?"SME":p.replace(/_/g,' ')),datasets:[{data:dataValues,backgroundColor:distinctProducts.map(p=>productColors[p]),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:mixLegendConfig,tooltip:{callbacks:{label:function(context){let total=context.dataset.data.reduce((a,b)=>a+b,0);let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';}}}}}});
+            }
+        }
+
+        function updateCoBranchChart(){
+            const ctx=document.getElementById('coBranchChart').getContext('2d');
+            const currentFileName=csvFilesConfig[currentActiveFileIndex].file;
+            const totalCoBranchMap={};
+            filteredData.forEach(row=>{const coBranch=row['CO-BRANCH-CLEAN'];if(coBranch){if(!totalCoBranchMap[coBranch])totalCoBranchMap[coBranch]=0;totalCoBranchMap[coBranch]+=(row[lastMonth]||0);}});
+            const top5CoBranchNames=Object.entries(totalCoBranchMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
+            const datasetBreakdown=distinctProducts.map(prod=>{return{label:prod==="Sme"?"SME":prod.replace(/_/g,' '),data:top5CoBranchNames.map(coName=>{let totalProd=0;filteredData.forEach(row=>{if(row['CO-BRANCH-CLEAN']===coName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),backgroundColor:productColors[prod],barThickness:window.innerWidth<768?12:16};});
+            if(charts.coBranch)charts.coBranch.destroy();
+            
+            // PERUBAHAN: Menggunakan getSquareLegendConfig() agar legend berbentuk KOTAK
+            charts.coBranch=new Chart(ctx,{type:'bar',data:{labels:top5CoBranchNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getSquareLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
+        }
+
+        function updateBranchChart(){
+            const ctx=document.getElementById('branchChart').getContext('2d');
+            const currentFileName=csvFilesConfig[currentActiveFileIndex].file;
+            const totalOfficeMap={};
+            filteredData.forEach(row=>{const office=row['OFFICE-CLEAN'];if(office){if(!totalOfficeMap[office])totalOfficeMap[office]=0;totalOfficeMap[office]+=(row[lastMonth]||0);}});
+            const top5OfficeNames=Object.entries(totalOfficeMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
+            const datasetBreakdown=distinctProducts.map(prod=>{return{label:prod==="Sme"?"SME":prod.replace(/_/g,' '),data:top5OfficeNames.map(officeName=>{let totalProd=0;filteredData.forEach(row=>{if(row['OFFICE-CLEAN']===officeName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),backgroundColor:productColors[prod],barThickness:window.innerWidth<768?12:16};});
+            if(charts.branch)charts.branch.destroy();
+            
+            // PERUBAHAN: Menggunakan getSquareLegendConfig() agar legend berbentuk KOTAK
+            charts.branch=new Chart(ctx,{type:'bar',data:{labels:top5OfficeNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getSquareLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9}}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
+        }
+
+        function updateTable(){
+            const tbody=document.getElementById('data-table-body'); tbody.innerHTML='';
+            const officeMap={};
+            filteredData.forEach(row=>{const office=row['OFFICE-CLEAN'];if(!office)return;if(!officeMap[office]){officeMap[office]={total:0};distinctProducts.forEach(p=>officeMap[office][p]=0);}const val=row[lastMonth]||0;const prod=row.PRODUCT;if(officeMap[office][prod]!==undefined){officeMap[office][prod]+=val;}officeMap[office].total+=val;});
+            const sortedOffices=Object.entries(officeMap).map(([name,vals])=>({name,...vals})).sort((a,b)=>b.total-a.total);
+            const fragment=document.createDocumentFragment();
+            const currentFileName=csvFilesConfig[currentActiveFileIndex].file;
+            const isBillionFormat=['financing.csv','funding.csv','coll.csv'].includes(currentFileName);
+            sortedOffices.forEach((item)=>{
+                const tr=document.createElement('tr'); tr.className="bg-white border-b hover:bg-slate-50 transition-colors";
+                let productCellsHtml='';
+                distinctProducts.forEach(prod=>{let displayVal=item[prod]||0;if(isBillionFormat){displayVal=formatToBillion(displayVal);}else{displayVal=formatNumber(displayVal);}productCellsHtml+=`<td class="px-2 py-2 text-right font-mono text-[11px] max-w-[80px] truncate" style="color: ${productColors[prod]};">${displayVal}</td>`;});
+                let totalDisplay=item.total;if(isBillionFormat){totalDisplay=formatToBillion(totalDisplay);}else{totalDisplay=formatNumber(totalDisplay);}
+                tr.innerHTML=`<td class="px-3 py-2.5 font-medium sticky-column"><a href="#" onclick="filterByBranchLink('${item.name}'); return false;" class="text-indigo-600 hover:text-indigo-900 hover:underline font-semibold flex items-center gap-1 text-xs"><i class="fa-solid fa-filter text-[9px] opacity-40"></i> ${item.name}</a></td>${productCellsHtml}<td class="px-3 py-2.5 text-right font-mono font-bold text-slate-800 text-xs">${totalDisplay}</td>`;
                 fragment.appendChild(tr);
             });
             tbody.appendChild(fragment);
         }
 
-        function generateAnalyticSummary(currentTotal, prevTotal, isNPF, isBillion) {
-            const summaryBox = document.getElementById('analytics-text-summary');
-            if(!summaryBox) return;
-            let diff = currentTotal - prevTotal;
-            let percentChange = prevTotal > 0 ? (diff / prevTotal) * 100 : 0;
-            let directionText = diff >= 0 ? "peningkatan" : "penurunan";
-            
-            if(isNPF) {
-                directionText = diff >= 0 ? "kenaikan risiko" : "perbaikan kualitas";
+        function animateNumber(element,targetValue,isPercentage=false){
+            if(!element) return;
+            const startValue=0; const duration=600; let startTime=null;
+            function animation(currentTime){
+                if(!startTime)startTime=currentTime;
+                const progress=Math.min((currentTime-startTime)/duration,1);
+                const easeProgress=progress*(2-progress);
+                const currentValue=startValue+easeProgress*(targetValue-startValue);
+                if(isPercentage){element.innerText=currentValue.toFixed(1)+'%';}else{element.innerText=formatNumber(currentValue);}
+                if(progress<1){requestAnimationFrame(animation);}else{if(isPercentage){element.innerText=targetValue.toFixed(1)+'%';}else{element.innerText=formatNumber(targetValue);}}
             }
-
-            let text = `Pada bulan <b>${lastMonth}</b>, total volume tercatat sebesar <b>${isBillion ? formatToBillion(currentTotal) : formatNumber(currentTotal)}</b>. `;
-            if(prevMonth) {
-                text += `Mengalami ${directionText} sebesar <b>${isBillion ? formatToBillion(Math.abs(diff)) : formatNumber(Math.abs(diff))}</b> (${percentChange.toFixed(1)}% MoM) dibandingkan bulan ${prevMonth}.`;
-            }
-            summaryBox.innerHTML = text;
+            requestAnimationFrame(animation);
         }
     </script>
 </body>
 </html>
+
