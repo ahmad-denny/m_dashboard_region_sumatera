@@ -450,21 +450,23 @@
             document.getElementById('kpi-latest-lbl').innerText = lastMonth;
         }
 
-function buildDynamicTableHeader() {
-            const thead = document.getElementById('table-header');
-            thead.innerHTML = '';
-            
-            const tr = document.createElement('tr');
-            // MODIFIKASI: Sembunyikan header tabel di mobile agar tidak merusak layout list vertikal
-            tr.className = "bg-slate-100 text-slate-600 text-2xs uppercase tracking-wider hidden md:table-row";
-            
-            let productHeadersHtml = '';
-            currentProducts.forEach(p => {
-                productHeadersHtml += `<th class="px-3 py-3 text-right font-semibold">${p}</th>`;
+        function buildDynamicTableHeader() {
+            const headerRow = document.getElementById('dynamic-table-header-row');
+            let headerHtml = `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs font-bold bg-slate-50 sticky-column text-left truncate">Branch</th>`;
+            distinctProducts.forEach(prod => {
+                let displayProdName = prod === "Sme" ? "SME" : prod.replace(/_/g, ' ');
+                headerHtml += `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs text-right font-bold whitespace-normal break-words max-w-[80px]" style="color: ${productColors[prod]};">${displayProdName}</th>`;
             });
-            
-            tr.innerHTML = `<th class="px-3 py-3 text-left font-semibold sticky-column bg-slate-100">Branch</th>${productHeadersHtml}<th class="px-3 py-3 text-right font-semibold">Total</th>`;
-            thead.appendChild(tr);
+            headerHtml += `<th scope="col" class="px-2 py-2 text-[10px] md:text-xs text-right font-bold bg-slate-50 max-w-[90px] whitespace-normal break-words">Total Amount</th>`;
+            headerRow.innerHTML = headerHtml;
+            const compSubLabels = document.getElementById('dynamic-group-pct-labels');
+            if (compSubLabels) {
+                compSubLabels.innerHTML = groupLabels.map((grp, i) => `
+                    <div class="bg-slate-50 p-2 rounded">
+                        <span class="block font-bold text-slate-700 text-xs md:text-sm" id="comp-group-pct-${i}">0%</span>
+                        <span class="text-[10px] text-slate-400 block truncate">${grp}</span>
+                    </div>`).join('');
+            }
         }
 
         function renderTable(data){
