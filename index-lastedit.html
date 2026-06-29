@@ -136,7 +136,7 @@
 
     <main class="flex-1 flex flex-col h-full w-full relative overflow-y-auto bg-[#f8fafc]" id="main-content">
         
-        <header class="bg-white border-b border-slate-200 flex flex-col justify-between px-4 md:px-6 shrink-0 pt-3 sticky top-0 z-30 shadow-sm w-full">
+        <header class="bg-white border-b border-slate-200 flex flex-col justify-between px-4 md:px-6 shrink-0 pt-3 sticky top-0 z-30 shadow-sm w-full" id="main-header">
             <div class="flex items-center justify-between w-full pb-2">
                 <div class="flex items-center gap-2">
                     <button id="mobile-menu-btn" class="md:hidden text-slate-600 hover:text-slate-900 p-2 -ml-2 focus:outline-none flex items-center justify-center">
@@ -164,7 +164,7 @@
         </header>
 
         <!-- FIX: Menambahkan z-40 agar KPI selalu berada di atas header tabel (z-20) saat discroll -->
-        <div class="sticky top-[84px] md:top-[97px] z-40 bg-[#f8fafc] px-4 md:px-6 pt-3 pb-3 border-b border-slate-200/60 shadow-sm">
+        <div class="sticky top-[84px] md:top-[97px] z-40 bg-[#f8fafc] px-4 md:px-6 pt-3 pb-3 border-b border-slate-200/60 shadow-sm" id="kpi-container">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 
                 <!-- Card 1 -->
@@ -648,20 +648,20 @@
                 tableContainer.style.overflowY = '';
                 mainContent.style.scrollBehavior = 'smooth';
                 mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // Hapus scroll listener saat charts ditampilkan kembali
+                tableContainer.removeEventListener('scroll', handleTableScroll);
             } else {
                 // HIDE CHARTS
                 wrapper.style.display = 'none';
                 icon.className = 'fa-solid fa-eye-slash';
                 
                 // Hitung tinggi viewport yang tersedia untuk tabel
-                // Header utama (~84px) + KPI (~130px) + Padding/Jarak (~100px)
-                // Kita gunakan kalkulasi dinamis agar responsif
                 const headerHeight = document.querySelector('header').offsetHeight;
-                const kpiHeight = document.querySelector('.sticky.top-\\[84px\\]').offsetHeight;
+                const kpiHeight = document.querySelector('#kpi-container').offsetHeight;
                 const paddingOffset = 120; // Margin + padding total
                 
                 // Set max-height pada container tabel agar muncul scrollbar internal
-                // Kurangi sedikit agar tidak terlalu mepet bawah layar
                 const availableHeight = window.innerHeight - headerHeight - kpiHeight - paddingOffset;
                 tableContainer.style.maxHeight = `${availableHeight}px`;
                 tableContainer.style.overflowY = 'auto';
@@ -670,6 +670,26 @@
                 mainContent.style.scrollBehavior = 'smooth';
                 const tableCard = document.getElementById('table-card-container');
                 tableCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Tambahkan scroll listener untuk fix sticky header/KPI di mobile
+                tableContainer.addEventListener('scroll', handleTableScroll);
+            }
+        }
+        
+        // FIX: Handler untuk menjaga header dan KPI tetap terlihat saat tabel di-scroll di mobile
+        function handleTableScroll() {
+            const tableContainer = document.getElementById('table-scroll-container');
+            const mainHeader = document.getElementById('main-header');
+            const kpiContainer = document.getElementById('kpi-container');
+            
+            if (window.innerWidth <= 768 && tableContainer.scrollTop > 0) {
+                // Saat tabel di-scroll, pastikan header dan KPI tetap di posisi yang benar
+                // dengan menyesuaikan z-index dan memastikan mereka tidak terpotong
+                mainHeader.style.zIndex = '50';
+                kpiContainer.style.zIndex = '45';
+            } else {
+                mainHeader.style.zIndex = '30';
+                kpiContainer.style.zIndex = '40';
             }
         }
 
