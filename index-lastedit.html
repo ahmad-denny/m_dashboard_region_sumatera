@@ -90,10 +90,10 @@
         </div>
     </div>
 
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 hidden md:hidden transition-opacity duration-300"></div>
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[45] hidden md:hidden transition-opacity duration-300"></div>   
 
     <!-- SIDEBAR MOBILE & DESKTOP -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:sticky w-64 bg-slate-900 text-white flex flex-col shadow-xl z-40 sidebar-transition h-[100dvh]">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:sticky w-64 bg-slate-900 text-white flex flex-col shadow-xl z-50 sidebar-transition h-[100dvh]">
         <button id="sidebar-toggle" class="hidden md:flex absolute -right-3 top-6 bg-indigo-500 text-white w-6 h-6 rounded-full items-center justify-center shadow-lg hover:bg-indigo-600 z-30 focus:outline-none">
             <i class="fa-solid fa-chevron-left text-xs transition-transform" id="toggle-icon"></i>
         </button>
@@ -296,10 +296,10 @@
         </div>
     </main>
 
-    <div id="loading" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div id="loading" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[60] flex items-center justify-center hidden">
         <div class="loader"></div>
     </div>
-
+    
     <script>
         const DASHBOARD_PASSWORD = 'rbpm'; 
 
