@@ -485,7 +485,10 @@
             
             currentActiveFileIndex = index;
             document.getElementById('loading').style.display = 'flex';
-            activeTimelineMonths = 0; 
+            
+            // FIX: Reset Timeline saat ganti tab
+            resetFilters(); 
+            
             loadSelectedCSV(index);
         }
 
