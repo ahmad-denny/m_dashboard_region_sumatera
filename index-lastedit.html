@@ -1198,7 +1198,7 @@
                 if(selectedOffice==='ALL'){summaryText+=`Adapun pusat aktivitas bisnis dengan performa kontribusi paling masif berada di bawah kelolaan cabang <b>${topOffice}</b> dengan nominal sebesar <b>${isBillionFormat?formatToBillion(maxOfficeVal):formatNumber(maxOfficeVal)}</b>.`;}
                 else{summaryText+=`Khusus untuk wilayah unit kerja <b>${selectedOffice}</b>, performa berjalan stabil disokong oleh lini produk andalannya.`;}
             }
-            document.getElementById('analytics-text-summary').innerHTML=summaryText;
+            //document.getElementById('analytics-text-summary').innerHTML=summaryText;
         }
 
         function updateCharts(){updateTrendChart();updateCompositionChart();updateCoBranchChart();updateBranchChart();}
