@@ -86,6 +86,15 @@
             /* Compact Mobile Styles */
             .mobile-compact-p { padding: 0.5rem !important; }
             .mobile-compact-text { font-size: 0.75rem !important; line-height: 1rem !important; }
+            
+            /* FIX TABLE HEADER MOBILE: Allow wrapping for multi-word headers */
+            #dynamic-table-header-row th:not(.sticky-column) {
+                white-space: normal !important;
+                line-height: 1.1 !important;
+                vertical-align: bottom !important;
+                padding-top: 0.5rem !important;
+                padding-bottom: 0.5rem !important;
+            }
         }
     </style>
 </head>
@@ -314,12 +323,8 @@
                 <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200 mb-2">Detailed Breakdown</h3>
                 <div class="overflow-x-auto w-full border border-slate-100 dark:border-slate-700 rounded-lg" id="table-scroll-container">
                     <table class="w-full text-[10px] md:text-sm text-left text-slate-600 dark:text-slate-400 min-w-[500px] border-collapse table-fixed">
-                        <!-- Header diubah menjadi 2 baris via JS -->
-                        <thead class="text-[9px] md:text-xs text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-800" id="dynamic-table-header">
-                            <!-- Row 1: Sticky Labels -->
-                            <tr id="dynamic-table-header-row-1" class="sticky top-0 z-20"></tr>
-                            <!-- Row 2: Dynamic Products (Scrollable) -->
-                            <tr id="dynamic-table-header-row-2"></tr>
+                        <thead class="text-[9px] md:text-xs text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-800 sticky top-0 z-20">
+                            <tr id="dynamic-table-header-row"></tr>
                         </thead>
                         <tbody id="data-table-body" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
                     </table>
@@ -539,32 +544,25 @@
             document.getElementById('kpi-latest-lbl').innerText = lastMonth;
         }
 
-        // FUNGSI BARU: HEADER 2 BARIS
         function buildDynamicTableHeader() {
-            const headerRow1 = document.getElementById('dynamic-table-header-row-1');
-            const headerRow2 = document.getElementById('dynamic-table-header-row-2');
-            
-            // Baris 1: Label Statis (Sticky)
-            let headerHtml1 = `<th scope="col" class="px-2 py-2 text-[9px] md:text-xs font-bold bg-slate-50 dark:bg-slate-800 sticky-column text-left truncate">Branch</th>`;
-            
-            // Baris 2: Nama Produk Dinamis (Non-Sticky, akan scroll bersama data)
-            let headerHtml2 = `<th scope="col" class="px-2 py-1 text-[9px] md:text-xs font-bold bg-slate-50 dark:bg-slate-800 sticky-column text-left truncate border-b border-slate-200 dark:border-slate-700">&nbsp;</th>`; // Spacer kosong untuk kolom Branch
+            const headerRow = document.getElementById('dynamic-table-header-row');
+            let headerHtml = `<th scope="col" class="px-2 py-2 text-[9px] md:text-xs font-bold bg-slate-50 dark:bg-slate-800 sticky-column text-left truncate">Branch</th>`;
             
             distinctProducts.forEach(prod => {
                 let displayProdName = prod === "Sme" ? "SME" : prod.replace(/_/g, ' ');
-                // Baris 1 kosong untuk produk (atau bisa diisi ikon kecil jika mau)
-                headerHtml1 += `<th scope="col" class="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"></th>`;
-                // Baris 2 berisi nama produk dengan warna
-                headerHtml2 += `<th scope="col" class="px-2 py-1 text-[9px] md:text-xs text-center font-bold whitespace-normal break-words max-w-[80px]" style="color: ${productColors[prod]};">${displayProdName}</th>`;
+                
+                // FIX: Jika nama produk lebih dari 1 kata, tambahkan <br> untuk mobile look yang lebih baik
+                // Contoh: "Pembiayaan Konsumer" -> "Pembiayaan<br>Konsumer"
+                if (displayProdName.includes(' ')) {
+                    displayProdName = displayProdName.replace(' ', '<br>');
+                }
+
+                headerHtml += `<th scope="col" class="px-2 py-2 text-[9px] md:text-xs text-right font-bold whitespace-normal break-words max-w-[80px]" style="color: ${productColors[prod]};">${displayProdName}</th>`;
             });
             
-            // Kolom Total Amount
-            headerHtml1 += `<th scope="col" class="px-2 py-2 text-[9px] md:text-xs text-right font-bold bg-slate-50 dark:bg-slate-800 max-w-[90px] whitespace-normal break-words">Total Amount</th>`;
-            headerHtml2 += `<th scope="col" class="px-2 py-1 text-[9px] md:text-xs text-right font-bold bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 max-w-[90px] whitespace-normal break-words">&nbsp;</th>`;
-
-            headerRow1.innerHTML = headerHtml1;
-            headerRow2.innerHTML = headerHtml2;
-
+            headerHtml += `<th scope="col" class="px-2 py-2 text-[9px] md:text-xs text-right font-bold bg-slate-50 dark:bg-slate-800 max-w-[90px] whitespace-normal break-words">Total Amount</th>`;
+            headerRow.innerHTML = headerHtml;
+            
             const compSubLabels = document.getElementById('dynamic-group-pct-labels');
             if (compSubLabels) {
                 compSubLabels.innerHTML = groupLabels.map((grp, i) => `
