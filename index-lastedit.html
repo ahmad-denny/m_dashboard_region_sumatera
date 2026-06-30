@@ -63,16 +63,19 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .sidebar-transition {
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        .collapsed .nav-text, 
-        .collapsed .user-info,
-        .collapsed .filter-label,
-        .collapsed select { display: none; }
-        
-        .collapsed .nav-header { justify-content: center; }
-        .collapsed .logo-text { display: none; }
+        /* Desktop Collapse Logic */
+        @media (min-width: 768px) {
+            .sidebar-transition { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+            .collapsed .nav-text, 
+            .collapsed .user-info,
+            .collapsed .filter-label,
+            .collapsed select { display: none; }
+            .collapsed .nav-header { justify-content: center; }
+            .collapsed .logo-text { display: none; }
+        }
 
         @media (max-width: 768px) {
             .sticky-column {
@@ -80,7 +83,6 @@
                 box-shadow: 3px 0 6px -3px rgba(0,0,0,0.15);
                 min-width: 110px !important; max-width: 130px !important;
             }
-            /* FIX: Pastikan main content bisa discroll penuh di mobile */
             #main-content { overflow-y: auto !important; }
             
             /* Compact Mobile Styles */
@@ -122,15 +124,16 @@
         </div>
     </div>
 
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 hidden md:hidden transition-opacity duration-300"></div>
+    <!-- BACKDROP MOBILE - Z-INDEX DITINGKATKAN KE 55 -->
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] hidden md:hidden transition-opacity duration-300"></div>
 
-    <!-- SIDEBAR -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:sticky w-64 bg-slate-900 text-white flex flex-col shadow-xl z-40 sidebar-transition h-[100dvh]">
+    <!-- SIDEBAR - Z-INDEX DITINGKATKAN KE 60 AGAR DI ATAS STICKY HEADER/KPI -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 -translate-x-full md:translate-x-0 md:sticky w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-[60] sidebar-transition h-[100dvh]">
         <button id="sidebar-toggle" class="hidden md:flex absolute -right-3 top-6 bg-indigo-500 text-white w-6 h-6 rounded-full items-center justify-center shadow-lg hover:bg-indigo-600 z-30 focus:outline-none">
             <i class="fa-solid fa-chevron-left text-xs transition-transform" id="toggle-icon"></i>
         </button>
         
-        <button id="sidebar-close-mobile" class="md:hidden absolute right-4 top-5 text-slate-400 hover:text-white text-lg p-2 focus:outline-none">
+        <button id="sidebar-close-mobile" class="md:hidden absolute right-4 top-5 text-slate-400 hover:text-white text-lg p-2 focus:outline-none z-50">
             <i class="fa-solid fa-xmark"></i>
         </button>
 
@@ -141,11 +144,11 @@
             <h1 class="font-bold text-sm tracking-wide logo-text leading-tight">Performance<br><span class="text-indigo-400">Region Sumatera</span></h1>
         </div>
 
-        <nav class="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
+        <nav class="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar pb-20">
             <div id="filter-container" class="space-y-3"></div>
         </nav>
         
-        <div class="p-3 border-t border-slate-700 bg-slate-800 user-info">
+        <div class="p-3 border-t border-slate-700 bg-slate-800 user-info absolute bottom-0 w-full">
             <div class="flex items-center gap-3">
                 <img src="https://ui-avatars.com/api/?name=AD&background=4f46e5&color=fff" alt="User" class="w-8 h-8 rounded-full border border-slate-600 shrink-0">
                 <div>
@@ -576,6 +579,7 @@
             }
         }
 
+        // PERBAIKAN LOGIKA MOBILE SIDEBAR
         function initMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
@@ -586,14 +590,16 @@
                 sidebar.classList.remove('-translate-x-full'); 
                 sidebar.classList.add('translate-x-0'); 
                 backdrop.classList.remove('hidden'); 
-                document.body.classList.add('overflow-hidden'); 
+                // Mencegah scroll pada body utama saat menu terbuka agar filter bisa diakses
+                document.body.style.overflow = 'hidden'; 
             }
             
             function closeMobileNav() { 
                 sidebar.classList.remove('translate-x-0'); 
                 sidebar.classList.add('-translate-x-full'); 
                 backdrop.classList.add('hidden'); 
-                document.body.classList.remove('overflow-hidden'); 
+                // Mengembalikan scroll pada body utama
+                document.body.style.overflow = ''; 
             }
             
             if(openBtn) openBtn.addEventListener('click', openMobileNav);
@@ -637,7 +643,7 @@
                 const defaultOpt = document.createElement('option'); defaultOpt.value = "ALL";
                 defaultOpt.innerText = col === 'OFFICE' ? 'All Branches' : `All ${col}s`;
                 select.appendChild(defaultOpt);
-                select.addEventListener('change', () => { handleFilterChange(); if(window.innerWidth < 768) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebar-backdrop').classList.add('hidden'); }});
+                select.addEventListener('change', () => { handleFilterChange(); if(window.innerWidth < 768) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebar-backdrop').classList.add('hidden'); document.body.style.overflow = ''; }});
                 wrapper.appendChild(label); wrapper.appendChild(select); container.appendChild(wrapper);
             });
             populateFilterOptions('CO-BRANCH', rawData);
