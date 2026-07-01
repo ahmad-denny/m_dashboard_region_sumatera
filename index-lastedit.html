@@ -1102,12 +1102,10 @@
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
             const isBillionFormat = ['financing.csv','funding.csv','coll.csv'].includes(currentFileName);
 
-            // MODIFIKASI: Menambahkan hidden: true untuk semua produk agar default hanya TOTAL yang terlihat
-            // Khusus untuk MDIN, produk tunggal tidak di-hide dan menampilkan nilai
+            // Dataset Logic
             const datasets=distinctProducts.map(prod=>{
                 const dataPoints=labels.map(month=>{let sum=0;filteredData.forEach(row=>{if(row.PRODUCT===prod)sum+=(row[month]||0);});return sum;});
                 
-                // Logika khusus untuk MDIN
                 if (currentFileName === "mdin.csv") {
                     return {
                         label: prod === "Sme" ? "SME" : prod.replace(/_/g, ' '),
@@ -1120,10 +1118,9 @@
                         pointBackgroundColor: isDark ? '#1e293b' : '#ffffff',
                         pointBorderColor: productColors[prod],
                         pointBorderWidth: 2,
-                        hidden: false // Tampilkan dataset MDIN
+                        hidden: false
                     };
                 } else {
-                    // Logika standar untuk file lain (sembunyikan produk individual)
                     return {
                         label: prod === "Sme" ? "SME" : prod.replace(/_/g, ' '),
                         data: dataPoints,
@@ -1135,7 +1132,7 @@
                         pointBackgroundColor: isDark ? '#1e293b' : '#ffffff',
                         pointBorderColor: productColors[prod],
                         pointBorderWidth: 1.5,
-                        hidden: true // Default hidden
+                        hidden: true
                     };
                 }
             });
@@ -1159,7 +1156,7 @@
 
             if(charts.trend)charts.trend.destroy();
             
-            // Plugin kustom untuk menampilkan angka di atas garis (khusus TOTAL atau MDIN)
+            // Plugin Data Labels
             const trendPlugins = [{
                 id: 'datalabels',
                 afterDatasetsDraw(chart) {
@@ -1168,9 +1165,7 @@
                     ctx.font = 'bold 10px Inter, sans-serif';
                     ctx.fillStyle = isDark ? '#f1f5f9' : '#1e293b';
                     ctx.textAlign = 'center';
-                    
-                    // PERBAIKAN: Mengatur baseline ke 'alphabetic' agar posisi teks lebih presisi saat digeser manual
-                    ctx.textBaseline = 'alphabetic'; 
+                    ctx.textBaseline = 'bottom'; // Menggunakan bottom agar teks selalu di atas titik
 
                     chart.data.datasets.forEach((dataset, i) => {
                         if (chart.isDatasetVisible(i)) {
@@ -1188,10 +1183,8 @@
                                             displayValue = formatToBillion(value);
                                         }
                                         
-                                        // PERBAIKAN: Menambahkan offset Y (-12px) agar teks naik sedikit dari titik
-                                        // dan tidak terpotong oleh batas atas canvas
-                                        const yOffset = -12; 
-                                        ctx.fillText(displayValue, element.x, element.y + yOffset);
+                                        // Offset Y -8px agar teks tidak menabrak titik
+                                        ctx.fillText(displayValue, element.x, element.y - 8);
                                     }
                                 });
                             }
@@ -1208,16 +1201,18 @@
                     responsive:true,
                     maintainAspectRatio:false,
                     interaction:{mode:'index',intersect:false},
-                    // PERBAIKAN UTAMA: Menambahkan padding layout agar area gambar memiliki ruang ekstra
-                    // sehingga teks label data tidak terpotong di tepi canvas
+                    
+                    // PERBAIKAN UTAMA DI SINI:
+                    // Menambahkan padding kiri/kanan (30px) agar angka di ujung tidak terpotong
                     layout: {
                         padding: {
-                            top: 25,    // Ruang ekstra di atas untuk angka tertinggi
+                            top: 25,    // Ruang untuk angka tertinggi
                             bottom: 5,
-                            left: 5,
-                            right: 5
+                            left: 30,   // Ruang ekstra di kiri
+                            right: 30   // Ruang ekstra di kanan (mencegah terpotong)
                         }
                     },
+                    
                     plugins:{
                         legend:getUnifiedLegendConfig(),
                         tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);}}}
@@ -1236,7 +1231,6 @@
                 plugins: trendPlugins
             });
         }
-
         function updateCompositionChart(){
             const ctx=document.getElementById('compositionChart').getContext('2d');
             const currentFileName=csvFilesConfig[currentActiveFileIndex].file;
