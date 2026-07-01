@@ -1090,7 +1090,7 @@
 
         function updateCharts(){updateTrendChart();updateCompositionChart();updateCoBranchChart();updateBranchChart();}
 
-        function updateTrendChart(){
+                function updateTrendChart(){
             const ctx=document.getElementById('trendChart').getContext('2d');
             const isDark = document.body.classList.contains('dark');
             const gridColor = isDark ? '#334155' : '#e2e8f0';
