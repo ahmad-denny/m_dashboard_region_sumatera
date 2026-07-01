@@ -679,16 +679,16 @@
 
         function toProperCase(str) { if(!str) return "-"; if(str.toLowerCase()==="sme") return "SME"; return str.toLowerCase().replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
 
-        // PERBAIKAN UTAMA DI SINI: Mengubah boxWidth dari 0 menjadi 8
+        // PERBAIKAN: Fungsi Legend Config Hardcoded ke Warna Gelap & Statis
         function getUnifiedLegendConfig() {
             return {
                 position: 'bottom',
                 labels: {
                     usePointStyle: true,
                     pointStyle: 'circle',
-                    boxWidth: 8, // Diubah dari 0 menjadi 8 agar marker terlihat jelas
+                    boxWidth: 6,
                     padding: window.innerWidth < 768 ? 8 : 15,
-                    color: '#475569', 
+                    color: '#475569', // Warna Slate-600 (Gelap) agar terbaca di background putih
                     font: { size: window.innerWidth < 768 ? 8 : 10 },
                     generateLabels: function(chart) {
                         const datasets = chart.data.datasets;
@@ -697,11 +697,13 @@
                             fillStyle: ds.backgroundColor,
                             strokeStyle: ds.borderColor || ds.backgroundColor,
                             lineWidth: 2,
-                            hidden: !chart.isDatasetVisible(i),
+                            // PERBAIKAN: Jangan gunakan isDatasetVisible karena bisa berubah saat hover
+                            // Gunakan pengecekan sederhana apakah data ada
+                            hidden: !ds.data || ds.data.length === 0, 
                             datasetIndex: i,
                             pointStyle: 'circle',
                             usePointStyle: true,
-                            boxWidth: 8 // Pastikan konsisten dengan boxWidth utama
+                            boxWidth: 0 
                         }));
                     }
                 }
@@ -716,7 +718,7 @@
                     pointStyle: 'rect',
                     boxWidth: 6,
                     padding: window.innerWidth < 768 ? 8 : 15,
-                    color: '#475569', 
+                    color: '#475569', // Warna Slate-600 (Gelap) agar terbaca di background putih
                     font: { size: window.innerWidth < 768 ? 8 : 10 },
                     generateLabels: function(chart) {
                         const datasets = chart.data.datasets;
@@ -725,7 +727,8 @@
                             fillStyle: ds.backgroundColor,
                             strokeStyle: ds.borderColor || ds.backgroundColor,
                             lineWidth: 2,
-                            hidden: !chart.isDatasetVisible(i),
+                            // PERBAIKAN: Logika statis agar tidak hilang saat hover
+                            hidden: !ds.data || ds.data.length === 0,
                             datasetIndex: i,
                             pointStyle: 'rect',
                             usePointStyle: true,
@@ -735,7 +738,7 @@
                 }
             };
         }
-
+        
         function updateKPIs() {
             let groupTotals={}, productTotals={}, grandTotal=0;
             let groupTotalsPrev={}, productTotalsPrev={}, grandTotalPrev=0;
