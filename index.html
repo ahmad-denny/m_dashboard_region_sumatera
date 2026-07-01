@@ -12,37 +12,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Konfigurasi Tailwind Sederhana (Hanya Light Mode) -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        light: {
-                            bg: '#f8fafc',
-                            card: '#ffffff',
-                            border: '#e2e8f0',
-                            text: '#1e293b',
-                            subtext: '#64748b'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            -webkit-tap-highlight-color: transparent; 
-            background-color: #f8fafc; 
-            color: #1e293b; 
-        }
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; color: #1e293b; }
         
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
         
-        /* Hapus semua style dark mode */
-        th { background-color: #f8fafc !important; color: #475569 !important; }
+        th { background-color: #f8fafc !important; color: #334155 !important; }
         td { border-color: #e2e8f0; }
         .sticky-column { background-color: #ffffff !important; }
 
@@ -83,6 +58,7 @@
             }
             #main-content { overflow-y: auto !important; }
             
+            /* Compact Mobile Styles */
             .mobile-compact-p { padding: 0.5rem !important; }
             .mobile-compact-text { font-size: 0.75rem !important; line-height: 1rem !important; }
         }
@@ -168,7 +144,7 @@
                     <h2 class="text-sm md:text-lg font-semibold text-slate-800 truncate" id="dashboard-main-title">Performance Analytics</h2>
                 </div>
                 <div class="flex items-center gap-2">
-                    <!-- TOMBOL THEME DIHAPUS -->
+                    <!-- THEME BUTTON DIHAPUS -->
 
                     <div class="text-right hidden sm:block">
                         <p class="text-[9px] text-slate-500">As of Date</p>
@@ -441,7 +417,6 @@
             document.getElementById('loading').style.display = 'flex';
             
             resetFilters(); 
-            
             loadSelectedCSV(index);
         }
 
@@ -704,8 +679,8 @@
 
         function toProperCase(str) { if(!str) return "-"; if(str.toLowerCase()==="sme") return "SME"; return str.toLowerCase().replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()); }
 
+        // PERBAIKAN: Fungsi Legend Config Hardcoded ke Warna Gelap
         function getUnifiedLegendConfig() {
-            const textColor = '#64748b';
             return {
                 position: 'bottom',
                 labels: {
@@ -713,7 +688,7 @@
                     pointStyle: 'circle',
                     boxWidth: 6,
                     padding: window.innerWidth < 768 ? 8 : 15,
-                    color: textColor,
+                    color: '#475569', // Warna Slate-600 (Gelap) agar terbaca di background putih
                     font: { size: window.innerWidth < 768 ? 8 : 10 },
                     generateLabels: function(chart) {
                         const datasets = chart.data.datasets;
@@ -734,7 +709,6 @@
         }
 
         function getSquareLegendConfig() {
-            const textColor = '#64748b';
             return {
                 position: 'bottom',
                 labels: {
@@ -742,7 +716,7 @@
                     pointStyle: 'rect',
                     boxWidth: 6,
                     padding: window.innerWidth < 768 ? 8 : 15,
-                    color: textColor,
+                    color: '#475569', // Warna Slate-600 (Gelap) agar terbaca di background putih
                     font: { size: window.innerWidth < 768 ? 8 : 10 },
                     generateLabels: function(chart) {
                         const datasets = chart.data.datasets;
@@ -1043,6 +1017,7 @@
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
             const isBillionFormat = ['financing.csv','funding.csv','coll.csv'].includes(currentFileName);
 
+            // Dataset Logic
             const datasets=distinctProducts.map(prod=>{
                 const dataPoints=labels.map(month=>{let sum=0;filteredData.forEach(row=>{if(row.PRODUCT===prod)sum+=(row[month]||0);});return sum;});
                 
@@ -1099,9 +1074,11 @@
 
             if(charts.trend)charts.trend.destroy();
             
+            // Plugin Data Labels
             const trendPlugins = [{
                 id: 'datalabels',
                 afterDatasetsDraw(chart) {
+                    // Hanya tampilkan angka jika lebar layar > 768px (Desktop/Tablet)
                     if (window.innerWidth <= 768) return; 
 
                     const { ctx } = chart;
@@ -1126,6 +1103,8 @@
                                         if (isBillionFormat) {
                                             displayValue = formatToBillion(value);
                                         }
+                                        
+                                        // Offset Y -8px agar teks tidak menabrak titik
                                         ctx.fillText(displayValue, element.x, element.y - 8);
                                     }
                                 });
@@ -1143,14 +1122,17 @@
                     responsive:true,
                     maintainAspectRatio:false,
                     interaction:{mode:'index',intersect:false},
+                    
+                    // Padding Layout yang cukup besar
                     layout: {
                         padding: {
-                            top: 30,
+                            top: 30,    // Ruang ekstra di atas untuk angka tertinggi
                             bottom: 5,
-                            left: 20,
-                            right: 20
+                            left: 20,   // Ruang kiri
+                            right: 20   // Ruang kanan
                         }
                     },
+                    
                     plugins:{
                         legend:getUnifiedLegendConfig(),
                         tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);}}}
@@ -1182,7 +1164,7 @@
                     pointStyle: 'circle',
                     padding: window.innerWidth < 768 ? 8 : 15,
                     boxWidth: 6,
-                    color: '#64748b',
+                    color: '#475569', // PERBAIKAN: Warna Gelap Hardcoded
                     font: { size: window.innerWidth < 768 ? 8 : 10 },
                     generateLabels: function(chart) {
                         const data = chart.data;
@@ -1225,6 +1207,7 @@
                 document.getElementById('dynamic-group-pct-labels').style.display = 'grid';
                 const dataValues=distinctProducts.map(prod=>{let sum=0;filteredData.forEach(row=>{if(row.PRODUCT===prod)sum+=(row[lastMonth]||0);});return sum;});
                 
+                // Menampilkan semua produk secara default (tanpa hidden: true)
                 if(charts.comp)charts.comp.destroy();
                 charts.comp=new Chart(ctx,{type:'doughnut',data:{labels:distinctProducts.map(p=>p==="Sme"?"SME":p.replace(/_/g,' ')),datasets:[{data:dataValues,backgroundColor:distinctProducts.map(p=>productColors[p]),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:mixLegendConfig,tooltip:{callbacks:{label:function(context){let total=context.dataset.data.reduce((a,b)=>a+b,0);let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';}}}}}});
             }
@@ -1239,16 +1222,18 @@
             filteredData.forEach(row=>{const coBranch=row['CO-BRANCH-CLEAN'];if(coBranch){if(!totalCoBranchMap[coBranch])totalCoBranchMap[coBranch]=0;totalCoBranchMap[coBranch]+=(row[lastMonth]||0);}});
             const top5CoBranchNames=Object.entries(totalCoBranchMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
             
+            // Menambahkan hidden: true untuk semua dataset produk
             const datasetBreakdown=distinctProducts.map(prod=>{
                 return{
                     label:prod==="Sme"?"SME":prod.replace(/_/g,' '),
                     data:top5CoBranchNames.map(coName=>{let totalProd=0;filteredData.forEach(row=>{if(row['CO-BRANCH-CLEAN']===coName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),
                     backgroundColor:productColors[prod],
                     barThickness:window.innerWidth<768?10:14,
-                    hidden: true
+                    hidden: true // Default hidden
                 };
             });
             
+            // Tambahkan dataset TOTAL yang visible
             const totalDataset = {
                 label: 'TOTAL',
                 data: top5CoBranchNames.map(coName => totalCoBranchMap[coName] || 0),
@@ -1273,16 +1258,18 @@
             filteredData.forEach(row=>{const office=row['OFFICE-CLEAN'];if(office){if(!totalOfficeMap[office])totalOfficeMap[office]=0;totalOfficeMap[office]+=(row[lastMonth]||0);}});
             const top5OfficeNames=Object.entries(totalOfficeMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
             
+            // Menambahkan hidden: true untuk semua dataset produk
             const datasetBreakdown=distinctProducts.map(prod=>{
                 return{
                     label:prod==="Sme"?"SME":prod.replace(/_/g,' '),
                     data:top5OfficeNames.map(officeName=>{let totalProd=0;filteredData.forEach(row=>{if(row['OFFICE-CLEAN']===officeName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),
                     backgroundColor:productColors[prod],
                     barThickness:window.innerWidth<768?10:14,
-                    hidden: true
+                    hidden: true // Default hidden
                 };
             });
 
+            // Tambahkan dataset TOTAL yang visible
             const totalDataset = {
                 label: 'TOTAL',
                 data: top5OfficeNames.map(officeName => totalOfficeMap[officeName] || 0),
