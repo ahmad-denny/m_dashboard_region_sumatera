@@ -526,10 +526,7 @@
                     pointStyle: 'circle',
                     padding: window.innerWidth < 768 ? 12 : 20,
                     boxWidth: 10,
-                    
-                    // PERBAIKAN UTAMA DI SINI
                     color: legendTextColor, 
-                    
                     font: { size: window.innerWidth < 768 ? 10 : 11, weight: '500' },
                     generateLabels: function(chart) {
                         const data = chart.data;
@@ -556,7 +553,6 @@
                                     lineWidth: 3,
                                     hidden: false,
                                     datasetIndex: 0,
-                                    // Pastikan teks label juga mewarisi warna yang benar
                                     fontColor: legendTextColor 
                                 };
                             });
@@ -662,7 +658,7 @@
             { name: "Hajj", file: "haji.csv", icon: "fa-kaaba" },
             { name: "Qris", file: "qris.csv", icon: "fa-qrcode" },
             { name: "MDin", file: "mdin.csv", icon: "fa-mobile-alt" },
-            { name: "NPF", file: "coll.csv", icon: "fa-gauge" }, 
+            { name: "NPF", file: "coll.csv", icon: "fa-gauge" } 
         ];
 
         let currentActiveFileIndex = 0;
@@ -706,9 +702,18 @@
             });
         }
 
+        // FUNGSI SWITCH TAB DENGAN PERSISTENSI FILTER
         function switchCSVTab(index) {
             if(index === currentActiveFileIndex) return;
             
+            // 1. Simpan status filter saat ini SEBELUM pindah tab
+            const currentFilters = {};
+            filterColumns.forEach(col => {
+                const el = document.getElementById(`filter-${col}`);
+                if(el && el.value !== "ALL") currentFilters[col] = el.value;
+            });
+
+            // Update UI Tab Active State
             const activeClass = 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20';
             const inactiveClass = 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600';
 
@@ -717,11 +722,12 @@
             
             currentActiveFileIndex = index;
             document.getElementById('loading').style.display = 'flex';
-            resetFilters(); 
-            loadSelectedCSV(index);
+            
+            // 2. Load Data Baru
+            loadSelectedCSV(index, currentFilters);
         }
 
-        function loadSelectedCSV(index) {
+        function loadSelectedCSV(index, preservedFilters = {}) {
             const targetFile = csvFilesConfig[index];
             document.getElementById('dashboard-main-title').innerText = `${targetFile.name.split(' / ')[0]} Dashboard`;
             Papa.parse(targetFile.file, {
@@ -737,7 +743,10 @@
                             buildDynamicTableHeader();
                         }
                         processData();
-                        initFilters();
+                        
+                        // 3. Re-init Filters dengan mempertahankan nilai yang valid
+                        initFilters(preservedFilters);
+                        
                         updateDashboard();
                     } catch (e) {
                         console.error("Error processing data:", e);
@@ -849,7 +858,8 @@
             filteredData = [...rawData];
         }
 
-        function initFilters() {
+        // MODIFIKASI: Menerima parameter preservedFilters
+        function initFilters(preservedFilters = {}) {
             const container = document.getElementById('filter-container');
             container.innerHTML = '';
             filterColumns.forEach(col => {
@@ -866,10 +876,40 @@
                 select.addEventListener('change', () => { handleFilterChange(); if(window.innerWidth < 768) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebar-backdrop').classList.add('hidden'); document.body.style.overflow = ''; }});
                 wrapper.appendChild(label); wrapper.appendChild(select); container.appendChild(wrapper);
             });
+
+            // Populate options pertama kali dari rawData
             populateFilterOptions('CO-BRANCH', rawData);
             populateFilterOptions('OFFICE', rawData);
             populateFilterOptions('PRODUCT', rawData);
             populateFilterOptions('GROUP', rawData);
+
+            // TERAPKAN FILTER YANG DISIMPAN JIKA VALID
+            if (Object.keys(preservedFilters).length > 0) {
+                // Urutan penting: CO-BRANCH -> OFFICE -> PRODUCT -> GROUP
+                const colsToApply = ['CO-BRANCH', 'OFFICE', 'PRODUCT', 'GROUP'];
+                let tempData = rawData; // Data acuan untuk validasi
+
+                colsToApply.forEach(col => {
+                    const savedVal = preservedFilters[col];
+                    if (savedVal && savedVal !== "ALL") {
+                        const select = document.getElementById(`filter-${col}`);
+                        // Cek apakah nilai tersimpan masih ada di opsi dropdown saat ini
+                        const options = Array.from(select.options).map(opt => opt.value);
+                        
+                        if (options.includes(savedVal)) {
+                            // Jika valid, set value dan filter data acuan untuk level berikutnya
+                            select.value = savedVal;
+                            
+                            // Update tempData untuk validasi hierarki selanjutnya
+                            const displayColumn = col === 'CO-BRANCH' ? 'CO-BRANCH-CLEAN' : col === 'OFFICE' ? 'OFFICE-CLEAN' : col;
+                            tempData = tempData.filter(row => row[displayColumn] === savedVal);
+                        }
+                    }
+                });
+                
+                // Setelah semua filter diterapkan, jalankan applyFilters untuk update dashboard
+                applyFilters();
+            }
         }
 
         function populateFilterOptions(column, dataSource) {
@@ -879,7 +919,10 @@
             const uniqueValues = [...new Set(dataSource.map(item => item[displayColumn]))].filter(Boolean).sort();
             while (select.options.length > 1) { select.remove(1); }
             uniqueValues.forEach(val => { const opt = document.createElement('option'); opt.value = val; opt.innerText = val === "Sme" ? "SME" : val; select.appendChild(opt); });
-            if (uniqueValues.includes(currentValue)) { select.value = currentValue; } else { select.value = "ALL"; }
+            
+            // Hanya restore value jika masih ada di list baru (untuk handleFilterChange biasa)
+            // Untuk initFilters, logic handled di atas
+            if (uniqueValues.includes(currentValue)) { select.value = currentValue; } 
         }
 
         function handleFilterChange() {
