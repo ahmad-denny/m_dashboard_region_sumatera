@@ -303,15 +303,42 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
+                    <!-- Top 5 CO-Branches -->
                     <div class="bg-white dark:bg-dark-card rounded-xl p-3 md:p-5 card-shadow transition-colors duration-300">
-                        <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200 mb-2">Top 5 CO-Branches</h3>
+                        <!-- Wrapper untuk Header & Toggle -->
+                        <div id="co-branch-header" class="flex justify-between items-center mb-2 min-h-[24px]">
+                            <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200" id="co-branch-title">Top 5 CO-Branches</h3>
+                            
+                            <!-- Tombol Toggle Best/Worst -->
+                            <div id="npf-toggle-co" class="hidden inline-flex rounded-md shadow-sm bg-slate-100 dark:bg-slate-700 p-0.5">
+                                <button onclick="setNpfMode('co', 'worst')" id="btn-npf-worst-co" 
+                                    class="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all">Worst</button>
+                                <button onclick="setNpfMode('co', 'best')" id="btn-npf-best-co" 
+                                    class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">Best</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart Area -->
                         <div class="relative h-48 md:h-56 w-full">
                             <canvas id="coBranchChart"></canvas>
                         </div>
                     </div>
-
+                    <!-- Top 5 Branches -->
                     <div class="bg-white dark:bg-dark-card rounded-xl p-3 md:p-5 card-shadow transition-colors duration-300">
-                        <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200 mb-2">Top 5 Branches</h3>
+                        <!-- Wrapper untuk Header & Toggle -->
+                        <div id="branch-header" class="flex justify-between items-center mb-2 min-h-[24px]">
+                            <h3 class="font-semibold text-xs md:text-sm text-slate-700 dark:text-slate-200" id="branch-title">Top 5 Branches</h3>
+                            
+                            <!-- Tombol Toggle Best/Worst -->
+                            <div id="npf-toggle-branch" class="hidden inline-flex rounded-md shadow-sm bg-slate-100 dark:bg-slate-700 p-0.5">
+                                <button onclick="setNpfMode('branch', 'worst')" id="btn-npf-worst-branch" 
+                                    class="px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all">Worst</button>
+                                <button onclick="setNpfMode('branch', 'best')" id="btn-npf-best-branch" 
+                                    class="px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all">Best</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart Area -->
                         <div class="relative h-48 md:h-56 w-full">
                             <canvas id="branchChart"></canvas>
                         </div>
@@ -1209,7 +1236,7 @@
 
         function updateCharts(){updateTrendChart();updateCompositionChart();updateCoBranchChart();updateBranchChart();}
 
-                function updateTrendChart(){
+        function updateTrendChart(){
             const ctx=document.getElementById('trendChart').getContext('2d');
             const isDark = document.body.classList.contains('dark');
             const gridColor = isDark ? '#334155' : '#e2e8f0';
@@ -1459,12 +1486,75 @@
             }
         }
 
+        // State untuk mode NPF (default: worst)
+        let npfMode = { co: 'worst', branch: 'worst' };
+        window.setNpfMode = function(chartType, mode) {
+            npfMode[chartType] = mode;
+            
+            // Update UI Button Styles
+            const prefix = chartType === 'co' ? 'co' : 'branch';
+            const btnWorst = document.getElementById(`btn-npf-worst-${prefix}`);
+            const btnBest = document.getElementById(`btn-npf-best-${prefix}`);
+            
+            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
+            const inactiveClass = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
+            
+            if (mode === 'worst') {
+                btnWorst.className = activeClass;
+                btnBest.className = inactiveClass;
+            } else {
+                btnWorst.className = inactiveClass;
+                btnBest.className = activeClass;
+            }
+            
+            // Re-render chart yang bersangkutan
+            if (chartType === 'co') updateCoBranchChart();
+            else updateBranchChart();
+        }
+
         function updateCoBranchChart(){
             const ctx=document.getElementById('coBranchChart').getContext('2d');
             const currentFileName=csvFilesConfig[currentActiveFileIndex].file;
             const isDark = document.body.classList.contains('dark');
             const textColor = isDark ? '#94a3b8' : '#64748b';
+            const isNpfTab = currentFileName === 'coll.csv';
+            
+            // Elemen DOM
+            const titleEl = document.getElementById('co-branch-title');
+            const toggleContainer = document.getElementById('npf-toggle-co');
+            
+            // PERBAIKAN LOGIKA TAMPILAN HEADER
+            if (isNpfTab) {
+                // Tab NPF: Sembunyikan JUDUL saja, TAMPILKAN toggle
+                if(titleEl) titleEl.style.display = 'none';
+                if(toggleContainer) toggleContainer.classList.remove('hidden');
+            } else {
+                // Tab Lain: Tampilkan JUDUL, SEMBUNYIKAN toggle
+                if(titleEl) {
+                    titleEl.style.display = 'block';
+                    titleEl.innerText = 'Top 5 CO-Branches';
+                }
+                if(toggleContainer) toggleContainer.classList.add('hidden');
+            }
 
+            // Update State Tombol Toggle (Visual Active/Inactive)
+            if (isNpfTab && toggleContainer) {
+                const btnWorst = document.getElementById('btn-npf-worst-co');
+                const btnBest = document.getElementById('btn-npf-best-co');
+                
+                const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
+                const inactiveClass = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
+
+                if (npfMode.co === 'worst') {
+                    btnWorst.className = activeClass;
+                    btnBest.className = inactiveClass;
+                } else {
+                    btnWorst.className = inactiveClass;
+                    btnBest.className = activeClass;
+                }
+            }            
+
+            // 1. Hitung Total per CO-Branch
             const totalCoBranchMap={};
             filteredData.forEach(row=>{
                 const coBranch=row['CO-BRANCH-CLEAN'];
@@ -1473,8 +1563,25 @@
                     totalCoBranchMap[coBranch]+=(row[lastMonth]||0);
                 }
             });
-            const top5CoBranchNames=Object.entries(totalCoBranchMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
+
+            // LOGIKA SORTING DINAMIS
+            let sortedEntries;
+            if (isNpfTab) {
+                if (npfMode.co === 'worst') {
+                    // Worst = Nilai Tertinggi (Descending)
+                    sortedEntries = Object.entries(totalCoBranchMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+                } else {
+                    // Best = Nilai Terendah (Ascending)
+                    sortedEntries = Object.entries(totalCoBranchMap).sort((a,b) => a[1] - b[1]).slice(0, 5);
+                }
+            } else {
+                // Default Top 5 (Descending)
+                sortedEntries = Object.entries(totalCoBranchMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            }
             
+            const top5CoBranchNames = sortedEntries.map(entry => entry[0]);
+            
+            // 2. Siapkan Dataset Breakdown
             const datasetBreakdown=distinctProducts.map(prod=>{
                 return {
                     label: prod==="Sme" ? "SME" : prod.replace(/_/g,' '),
@@ -1498,7 +1605,6 @@
                 options: {
                     indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:false,
                     plugins: {
-                        // GUNAKAN HELPER OUTLINE LEGEND DI SINI
                         legend: getOutlineLegendConfig('coBranchChart', isDark),
                         tooltip: {
                             callbacks: {
@@ -1555,101 +1661,149 @@
             });
         }
 
-        function updateBranchChart(){
-            const ctx=document.getElementById('branchChart').getContext('2d');
-            const currentFileName=csvFilesConfig[currentActiveFileIndex].file;
-            const isDark = document.body.classList.contains('dark');
-            const textColor = isDark ? '#94a3b8' : '#64748b';
+    function updateBranchChart(){
+        const ctx=document.getElementById('branchChart').getContext('2d');
+        const currentFileName=csvFilesConfig[currentActiveFileIndex].file;
+        const isDark = document.body.classList.contains('dark');
+        const textColor = isDark ? '#94a3b8' : '#64748b';
+        const isNpfTab = currentFileName === 'coll.csv';
 
-            const totalOfficeMap={};
-            filteredData.forEach(row=>{
-                const office=row['OFFICE-CLEAN'];
-                if(office){
-                    if(!totalOfficeMap[office]) totalOfficeMap[office]=0;
-                    totalOfficeMap[office]+=(row[lastMonth]||0);
-                }
-            });
-            const top5OfficeNames=Object.entries(totalOfficeMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
-            
-            const datasetBreakdown=distinctProducts.map(prod=>{
-                return {
-                    label: prod==="Sme" ? "SME" : prod.replace(/_/g,' '),
-                    data: top5OfficeNames.map(officeName=>{
-                        let totalProd=0;
-                        filteredData.forEach(row=>{
-                            if(row['OFFICE-CLEAN']===officeName && row.PRODUCT===prod) totalProd+=(row[lastMonth]||0);
-                        });
-                        return totalProd;
-                    }),
-                    backgroundColor: productColors[prod],
-                    barThickness: window.innerWidth<768 ? 10 : 14
-                };
-            });
+        // Elemen DOM
+        const titleEl = document.getElementById('branch-title');
+        const toggleContainer = document.getElementById('npf-toggle-branch');
 
-            if(charts.branch) charts.branch.destroy();
+        // PERBAIKAN LOGIKA TAMPILAN HEADER
+        if (isNpfTab) {
+            // Tab NPF: Sembunyikan JUDUL saja, TAMPILKAN toggle
+            if(titleEl) titleEl.style.display = 'none';
+            if(toggleContainer) toggleContainer.classList.remove('hidden');
+        } else {
+            // Tab Lain: Tampilkan JUDUL, SEMBUNYIKAN toggle
+            if(titleEl) {
+                titleEl.style.display = 'block';
+                titleEl.innerText = 'Top 5 Branches';
+            }
+            if(toggleContainer) toggleContainer.classList.add('hidden');
+        }
+        
+        // Update State Tombol Toggle
+        if (isNpfTab && toggleContainer) {
+            const btnWorst = document.getElementById('btn-npf-worst-branch');
+            const btnBest = document.getElementById('btn-npf-best-branch');
             
-            charts.branch=new Chart(ctx, {
-                type:'bar',
-                data: { labels: top5OfficeNames, datasets: datasetBreakdown },
-                options: {
-                    indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:false,
-                    plugins: {
-                        // GUNAKAN HELPER OUTLINE LEGEND DI SINI
-                        legend: getOutlineLegendConfig('branchChart', isDark),
-                        tooltip: {
-                            callbacks: {
-                                label: function(context){
-                                    return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);
-                                }
+            const activeClass = "px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";
+            const inactiveClass = "px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";
+
+            if (npfMode.branch === 'worst') {
+                btnWorst.className = activeClass;
+                btnBest.className = inactiveClass;
+            } else {
+                btnWorst.className = inactiveClass;
+                btnBest.className = activeClass;
+            }
+        }
+
+        const totalOfficeMap={};
+        filteredData.forEach(row=>{
+            const office=row['OFFICE-CLEAN'];
+            if(office){
+                if(!totalOfficeMap[office]) totalOfficeMap[office]=0;
+                totalOfficeMap[office]+=(row[lastMonth]||0);
+            }
+        });
+
+        // LOGIKA SORTING DINAMIS
+        let sortedEntries;
+        if (isNpfTab) {
+            if (npfMode.branch === 'worst') {
+                sortedEntries = Object.entries(totalOfficeMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            } else {
+                sortedEntries = Object.entries(totalOfficeMap).sort((a,b) => a[1] - b[1]).slice(0, 5);
+            }
+        } else {
+            sortedEntries = Object.entries(totalOfficeMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+        }
+        
+        const top5OfficeNames = sortedEntries.map(entry => entry[0]);
+        
+        const datasetBreakdown=distinctProducts.map(prod=>{
+            return {
+                label: prod==="Sme" ? "SME" : prod.replace(/_/g,' '),
+                data: top5OfficeNames.map(officeName=>{
+                    let totalProd=0;
+                    filteredData.forEach(row=>{
+                        if(row['OFFICE-CLEAN']===officeName && row.PRODUCT===prod) totalProd+=(row[lastMonth]||0);
+                    });
+                    return totalProd;
+                }),
+                backgroundColor: productColors[prod],
+                barThickness: window.innerWidth<768 ? 10 : 14
+            };
+        });
+
+        if(charts.branch) charts.branch.destroy();
+                
+        charts.branch=new Chart(ctx, {
+            type:'bar',
+            data: { labels: top5OfficeNames, datasets: datasetBreakdown },
+            options: {
+                indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:false,
+                plugins: {
+                    legend: getOutlineLegendConfig('branchChart', isDark),
+                    tooltip: {
+                        callbacks: {
+                            label: function(context){
+                                return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);
                             }
                         }
-                    },
-                    scales: {
-                        x: { stacked:true, display:false, grid:{display:false} },
-                        y: { stacked:true, grid:{display:false}, ticks:{font:{size:9}, color: textColor} }
                     }
                 },
-                plugins: [{
-                    id:'internal_bar_labels_instant',
-                    afterDatasetsDraw(chart){
-                        const {ctx}=chart;
-                        ctx.save();
-                        ctx.font='bold 9px Inter, sans-serif';
-                        ctx.fillStyle='#ffffff';
-                        ctx.textAlign='center';
-                        ctx.textBaseline='middle';
-                        const labelsCount=chart.data.labels.length;
-                        for(let i=0;i<labelsCount;i++){
-                            let totalBarValue=0;
-                            chart.data.datasets.forEach((dataset,datasetIdx)=>{
-                                if(chart.isDatasetVisible(datasetIdx)) totalBarValue+=dataset.data[i];
-                            });
-                            if(totalBarValue===0) continue;
-                            
-                            chart.data.datasets.forEach((dataset,datasetIdx)=>{
-                                if(chart.isDatasetVisible(datasetIdx)){
-                                    const element=chart.getDatasetMeta(datasetIdx).data[i];
-                                    const val=dataset.data[i];
-                                    if(element && val>0){
-                                        let displayText='';
-                                        if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){
-                                            displayText=formatNumber(val);
-                                        } else {
-                                            displayText=((val/totalBarValue)*100).toFixed(0)+'%';
-                                        }
-                                        const width=Math.abs(element.x-element.base);
-                                        const centerX=element.base+((element.x-element.base)/2);
-                                        const centerY=element.y;
-                                        if(width>12) ctx.fillText(displayText,centerX,centerY);
+                scales: {
+                    x: { stacked:true, display:false, grid:{display:false} },
+                    y: { stacked:true, grid:{display:false}, ticks:{font:{size:9}, color: textColor} }
+                }
+            },
+            plugins: [{
+                id:'internal_bar_labels_instant',
+                afterDatasetsDraw(chart){
+                    const {ctx}=chart;
+                    ctx.save();
+                    ctx.font='bold 9px Inter, sans-serif';
+                    ctx.fillStyle='#ffffff';
+                    ctx.textAlign='center';
+                    ctx.textBaseline='middle';
+                    const labelsCount=chart.data.labels.length;
+                    for(let i=0;i<labelsCount;i++){
+                        let totalBarValue=0;
+                        chart.data.datasets.forEach((dataset,datasetIdx)=>{
+                            if(chart.isDatasetVisible(datasetIdx)) totalBarValue+=dataset.data[i];
+                        });
+                        if(totalBarValue===0) continue;
+                        
+                        chart.data.datasets.forEach((dataset,datasetIdx)=>{
+                            if(chart.isDatasetVisible(datasetIdx)){
+                                const element=chart.getDatasetMeta(datasetIdx).data[i];
+                                const val=dataset.data[i];
+                                if(element && val>0){
+                                    let displayText='';
+                                    if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){
+                                        displayText=formatNumber(val);
+                                    } else {
+                                        displayText=((val/totalBarValue)*100).toFixed(0)+'%';
                                     }
+                                    const width=Math.abs(element.x-element.base);
+                                    const centerX=element.base+((element.x-element.base)/2);
+                                    const centerY=element.y;
+                                    if(width>12) ctx.fillText(displayText,centerX,centerY);
                                 }
-                            });
-                        }
-                        ctx.restore();
+                            }
+                        });
                     }
-                }]
-            });
-        }
+                    ctx.restore();
+                }
+            }]
+        });
+    }
 
         function updateTable(){
             const tbody=document.getElementById('data-table-body'); tbody.innerHTML='';
