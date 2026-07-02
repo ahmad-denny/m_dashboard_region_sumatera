@@ -89,6 +89,13 @@
             .mobile-compact-p { padding: 0.5rem !important; }
             .mobile-compact-text { font-size: 0.75rem !important; line-height: 1rem !important; }
         }
+        .chartjs-legend li span,
+        canvas + div ul li span {
+            text-decoration: none !important;
+            border-bottom: none !important;
+            text-decoration-line: none !important;
+            -webkit-text-decoration: none !important;
+        }
     </style>
 </head>
 <body class="light h-screen h-[100dvh] flex overflow-hidden relative">
@@ -153,7 +160,7 @@
                 <img src="https://ui-avatars.com/api/?name=AD&background=4f46e5&color=fff" alt="User" class="w-8 h-8 rounded-full border border-slate-600 shrink-0">
                 <div>
                     <p class="text-xs font-medium">RBPM - Region Sumatera</p>
-                    <p class="text-[10px] text-slate-400">Typing-Create-Update-Repeat</p>
+                    <p class="text-[10px] text-slate-400">Admin Access</p>
                 </div>
             </div>
         </div>
@@ -167,11 +174,15 @@
                 <div class="flex items-center gap-2">
                     <button id="mobile-menu-btn" class="md:hidden text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-1 -ml-2 focus:outline-none flex items-center justify-center">
                         <i class="fa-solid fa-bars text-lg"></i>
-                    </button>                    
+                    </button>
                     <h2 class="text-sm md:text-lg font-semibold text-slate-800 dark:text-white truncate" id="dashboard-main-title">Performance Analytics</h2>
                 </div>
                 <div class="flex items-center gap-2">
-                    <!-- TOMBOL THEME TELAH DIHAPUS DI SINI -->
+                    <!-- THEME TOGGLE BUTTON -->
+                    <button onclick="toggleTheme()" class="w-8 h-8 flex items-center justify-center text-slate-600 dark:text-yellow-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-full transition-colors focus:outline-none" title="Toggle Theme">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:block"></i>
+                    </button>
 
                     <div class="text-right hidden sm:block">
                         <p class="text-[9px] text-slate-500 dark:text-slate-400">As of Date</p>
@@ -350,8 +361,6 @@
             }
         }
 
-        // Fungsi toggleTheme tetap ada di JS untuk kompatibilitas internal, 
-        // tapi karena tombolnya sudah dihapus dari HTML, user tidak bisa lagi mengubahnya secara manual.
         window.toggleTheme = function() {
             const html = document.documentElement;
             const body = document.body;
@@ -423,6 +432,119 @@
                 initMobileSidebar(); 
             }
         });
+
+        // State global untuk menyimpan status toggle legend per chart
+        window.customLegendStates = window.customLegendStates || {};
+
+        // Helper warna outline
+        function getOutlineColor(hex, opacity = 0.2) {
+            if (!hex || !hex.startsWith('#')) return `rgba(0,0,0,${opacity})`;
+            const r = parseInt(hex.slice(1,3), 16);
+            const g = parseInt(hex.slice(3,5), 16);
+            const b = parseInt(hex.slice(5,7), 16);
+            return `rgba(${r},${g},${b},${opacity})`;
+        }
+
+        function getOutlineLegendConfig(chartId, isDark) {
+            if (!window.customLegendStates[chartId]) window.customLegendStates[chartId] = {};
+            const state = window.customLegendStates[chartId];
+
+            return {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: window.innerWidth < 768 ? 12 : 20,
+                    boxWidth: 10,
+                    color: isDark ? '#f1f5f9' : '#1e293b', 
+                    font: { size: window.innerWidth < 768 ? 10 : 11, weight: '500' },
+                    generateLabels: function(chart) {
+                        const data = chart.data;
+                        if (!data.datasets.length) return [];
+                        
+                        const chartType = chart.config.type;
+                        
+                        // PERBEDAAN STRUKTUR DATA:
+                        // Line & Bar: Setiap produk adalah 1 Dataset → iterate data.datasets
+                        // Doughnut: Semua produk ada di 1 Dataset → iterate data.labels
+                        
+                        if (chartType === 'doughnut' || chartType === 'pie') {
+                            const dataset = data.datasets[0];
+                            return data.labels.map((label, i) => {
+                                let baseColor = Array.isArray(dataset.backgroundColor) 
+                                    ? dataset.backgroundColor[i] 
+                                    : dataset.backgroundColor;
+                                
+                                if (!baseColor) baseColor = '#cbd5e1';
+                                const isHidden = state[i] === true;
+                                
+                                return {
+                                    text: label, // Nama produk dari data.labels
+                                    index: i,
+                                    pointStyle: 'circle',
+                                    fillStyle: isHidden ? 'rgba(148, 163, 184, 0.1)' : getOutlineColor(baseColor, 0.2),
+                                    strokeStyle: isHidden ? (isDark ? '#475569' : '#cbd5e1') : baseColor,
+                                    lineWidth: 3,
+                                    hidden: false,
+                                    datasetIndex: 0 // Selalu 0 karena hanya ada 1 dataset
+                                };
+                            });
+                        } else {
+                            // Line & Bar Chart: iterate datasets
+                            return data.datasets.map((ds, i) => {
+                                let baseColor = '';
+                                let labelText = ds.label;
+
+                                if (chartType === 'bar') {
+                                    baseColor = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[0] : ds.backgroundColor;
+                                } else if (chartType === 'line') {
+                                    baseColor = ds.borderColor || (Array.isArray(ds.backgroundColor) ? ds.backgroundColor[0] : ds.backgroundColor);
+                                }
+
+                                if (!baseColor) baseColor = '#cbd5e1';
+                                const isHidden = state[i] === true;
+                                
+                                return {
+                                    text: labelText,
+                                    index: i,
+                                    pointStyle: 'circle',
+                                    fillStyle: isHidden ? 'rgba(148, 163, 184, 0.1)' : getOutlineColor(baseColor, 0.2),
+                                    strokeStyle: isHidden ? (isDark ? '#475569' : '#cbd5e1') : baseColor,
+                                    lineWidth: 3,
+                                    hidden: false,
+                                    datasetIndex: i
+                                };
+                            });
+                        }
+                    }
+                },
+                onClick: function(e, legendItem, legend) {
+                    const index = legendItem.index;
+                    const ci = legend.chart;
+                    
+                    state[index] = !state[index];
+                    
+                    const chartType = ci.config.type;
+                    
+                    if (chartType === 'doughnut' || chartType === 'pie') {
+                        // Doughnut: toggle titik data spesifik di dataset tunggal
+                        const meta = ci.getDatasetMeta(0);
+                        if (meta.data[index]) {
+                            meta.data[index].hidden = state[index];
+                        }
+                    } else {
+                        // Line & Bar: toggle seluruh dataset
+                        const meta = ci.getDatasetMeta(index);
+                        if (meta) {
+                            meta.hidden = state[index];
+                        }
+                    }
+                    
+                    ci.update();
+                }
+            };
+        }
+
 
         const csvFilesConfig = [
             { name: "Financing", file: "financing.csv", icon: "fa-hand-holding-dollar" },
@@ -1087,58 +1209,44 @@
 
         function updateCharts(){updateTrendChart();updateCompositionChart();updateCoBranchChart();updateBranchChart();}
 
-        function updateTrendChart(){
+                function updateTrendChart(){
             const ctx=document.getElementById('trendChart').getContext('2d');
             const isDark = document.body.classList.contains('dark');
             const gridColor = isDark ? '#334155' : '#e2e8f0';
             const textColor = isDark ? '#94a3b8' : '#64748b';
-
-            let labels=[...monthColumns]; if(activeTimelineMonths>0){labels=labels.slice(-activeTimelineMonths);}
-            document.getElementById('trend-title').innerText=`Trend (${labels[0]} to ${labels[labels.length-1]})`;
-            const getTransparentColor=(hex)=>{if(!hex||!hex.startsWith('#'))return'rgba(0,0,0,0.15)';const r=parseInt(hex.slice(1,3),16);const g=parseInt(hex.slice(3,5),16);const b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},0.15)`;};
-            
             const currentFileName = csvFilesConfig[currentActiveFileIndex].file;
-            const isBillionFormat = ['financing.csv','funding.csv','coll.csv'].includes(currentFileName);
 
-            // Dataset Logic
+            let labels=[...monthColumns]; 
+            if(activeTimelineMonths>0){ labels=labels.slice(-activeTimelineMonths); }
+            document.getElementById('trend-title').innerText=`Trend (${labels[0]} to ${labels[labels.length-1]})`;
+            
             const datasets=distinctProducts.map(prod=>{
-                const dataPoints=labels.map(month=>{let sum=0;filteredData.forEach(row=>{if(row.PRODUCT===prod)sum+=(row[month]||0);});return sum;});
-                
-                if (currentFileName === "mdin.csv") {
-                    return {
-                        label: prod === "Sme" ? "SME" : prod.replace(/_/g, ' '),
-                        data: dataPoints,
-                        borderColor: productColors[prod],
-                        backgroundColor: getTransparentColor(productColors[prod]),
-                        borderWidth: 2,
-                        tension: 0.3,
-                        pointRadius: window.innerWidth < 768 ? 3 : 5,
-                        pointBackgroundColor: isDark ? '#1e293b' : '#ffffff',
-                        pointBorderColor: productColors[prod],
-                        pointBorderWidth: 2,
-                        hidden: false,
-                        clip: false // Izinkan elemen digambar di luar area plot
-                    };
-                } else {
-                    return {
-                        label: prod === "Sme" ? "SME" : prod.replace(/_/g, ' '),
-                        data: dataPoints,
-                        borderColor: productColors[prod],
-                        backgroundColor: getTransparentColor(productColors[prod]),
-                        borderWidth: 2,
-                        tension: 0.3,
-                        pointRadius: window.innerWidth < 768 ? 2 : 4,
-                        pointBackgroundColor: isDark ? '#1e293b' : '#ffffff',
-                        pointBorderColor: productColors[prod],
-                        pointBorderWidth: 1.5,
-                        hidden: true,
-                        clip: false // Izinkan elemen digambar di luar area plot
-                    };
-                }
+                const dataPoints=labels.map(month=>{
+                    let sum=0;
+                    filteredData.forEach(row=>{ if(row.PRODUCT===prod) sum+=(row[month]||0); });
+                    return sum;
+                });
+                return {
+                    label: prod==="Sme" ? "SME" : prod.replace(/_/g,' '),
+                    data: dataPoints,
+                    borderColor: productColors[prod],
+                    backgroundColor: getOutlineColor(productColors[prod], 0.15),
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointRadius: window.innerWidth<768 ? 2 : 4,
+                    pointBackgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    pointBorderColor: productColors[prod],
+                    pointBorderWidth: 1.5
+                };
             });
 
+            // Tambahkan Total Line jika bukan mdin
             if (currentFileName !== "mdin.csv") {
-                const totalDataPoints=labels.map(month=>{let sum=0;filteredData.forEach(row=>{sum+=(row[month]||0);});return sum;});
+                const totalDataPoints=labels.map(month=>{
+                    let sum=0;
+                    filteredData.forEach(row=>{ sum+=(row[month]||0); });
+                    return sum;
+                });
                 datasets.push({
                     label:'TOTAL',
                     data:totalDataPoints,
@@ -1150,150 +1258,204 @@
                     pointRadius:window.innerWidth<768?2:4,
                     pointBackgroundColor: isDark ? '#1e293b' : '#ffffff',
                     pointBorderColor: isDark ? '#94a3b8' : '#1e293b',
-                    pointBorderWidth:1.5,
-                    clip: false // Izinkan elemen digambar di luar area plot
+                    pointBorderWidth:1.5
                 });
             }
 
-            if(charts.trend)charts.trend.destroy();
-            
-            // Plugin Data Labels
-            const trendPlugins = [{
-                id: 'datalabels',
-                afterDatasetsDraw(chart) {
-                    // Hanya tampilkan angka jika lebar layar > 768px (Desktop/Tablet)
-                    if (window.innerWidth <= 768) return; 
-
-                    const { ctx } = chart;
-                    ctx.save();
-                    ctx.font = 'bold 10px Inter, sans-serif';
-                    ctx.fillStyle = isDark ? '#f1f5f9' : '#1e293b';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'bottom';
-
-                    chart.data.datasets.forEach((dataset, i) => {
-                        if (chart.isDatasetVisible(i)) {
-                            const meta = chart.getDatasetMeta(i);
-                            
-                            const isMDIN = currentFileName === "mdin.csv" && i === 0;
-                            const isTOTAL = currentFileName !== "mdin.csv" && dataset.label === 'TOTAL';
-
-                            if (isMDIN || isTOTAL) {
-                                meta.data.forEach((element, index) => {
-                                    const value = dataset.data[index];
-                                    if (value !== null && value !== undefined && value !== 0) {
-                                        let displayValue = formatNumber(value);
-                                        if (isBillionFormat) {
-                                            displayValue = formatToBillion(value);
-                                        }
-                                        
-                                        // Offset Y -8px agar teks tidak menabrak titik
-                                        ctx.fillText(displayValue, element.x, element.y - 8);
-                                    }
-                                });
+            if(charts.trend) charts.trend.destroy();
+            charts.trend=new Chart(ctx, {
+                type:'line',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive:true, maintainAspectRatio:false,
+                    interaction:{ mode:'index', intersect:false },
+                    plugins: {
+                        // GUNAKAN HELPER OUTLINE LEGEND DI SINI
+                        legend: getOutlineLegendConfig('trendChart', isDark),
+                        tooltip: {
+                            callbacks: {
+                                label: function(context){
+                                    return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);
+                                }
                             }
                         }
-                    });
-                    ctx.restore();
-                }
-            }];
-
-            charts.trend=new Chart(ctx,{
-                type:'line',
-                data:{labels:labels,datasets:datasets},
-                options:{
-                    responsive:true,
-                    maintainAspectRatio:false,
-                    interaction:{mode:'index',intersect:false},
-                    
-                    // Padding Layout yang cukup besar
-                    layout: {
-                        padding: {
-                            top: 30,    // Ruang ekstra di atas untuk angka tertinggi
-                            bottom: 5,
-                            left: 20,   // Ruang kiri
-                            right: 20   // Ruang kanan
-                        }
                     },
-                    
-                    plugins:{
-                        legend:getUnifiedLegendConfig(),
-                        tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);}}}
-                    },
-                    scales:{
-                        y:{
-                            grid:{color: gridColor},
-                            ticks:{font:{size:9},color: textColor,callback:(val)=>formatChartValue(val, currentFileName)}
+                    scales: {
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { font:{size:9}, color: textColor, callback:(val)=>formatChartValue(val, currentFileName) }
                         },
-                        x:{
-                            grid:{display:false},
-                            ticks:{font:{size:9},color: textColor}
+                        x: {
+                            grid: { display:false },
+                            ticks: { font:{size:9}, color: textColor }
                         }
                     }
-                }, 
-                plugins: trendPlugins
+                }
             });
         }
+
+        if (typeof window.customLegendState === 'undefined') window.customLegendState = {};
 
         function updateCompositionChart(){
             const ctx=document.getElementById('compositionChart').getContext('2d');
             const currentFileName=csvFilesConfig[currentActiveFileIndex].file;
             const isDark = document.body.classList.contains('dark');
-            const getTransparentColor=(hex)=>{if(!hex||!hex.startsWith('#'))return'rgba(0,0,0,0.15)';const r=parseInt(hex.slice(1,3),16);const g=parseInt(hex.slice(3,5),16);const b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},0.15)`;};
             
-            const mixLegendConfig = {
-                position: 'bottom',
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'circle',
-                    padding: window.innerWidth < 768 ? 8 : 15,
-                    boxWidth: 6,
-                    color: isDark ? '#94a3b8' : '#64748b',
-                    font: { size: window.innerWidth < 768 ? 8 : 10 },
-                    generateLabels: function(chart) {
-                        const data = chart.data;
-                        if (data.labels.length && data.datasets.length) {
-                            const dataset = data.datasets[0];
-                            return data.labels.map((label, i) => {
-                                const meta = chart.getDatasetMeta(0);
-                                const baseColor = dataset.backgroundColor[i];
-                                return {
-                                    text: label,
-                                    index: i,
-                                    pointStyle: 'circle',
-                                    fillStyle: getTransparentColor(baseColor),
-                                    strokeStyle: baseColor,
-                                    lineWidth: 2,
-                                    hidden: isNaN(dataset.data[i]) || meta.data[i].hidden,
-                                    textDecoration: meta.data[i].hidden ? 'line-through' : 'none'
-                                };
-                            });
+            // Plugin Persentase Statis (tetap sama seperti sebelumnya)
+                        // Plugin Kustom: Menampilkan Persentase (%) secara statis di tengah slice
+            const staticPercentPlugin = {
+                id: 'staticPercentPlugin',
+                afterDatasetsDraw(chart, args, options) {
+                    const { ctx, data } = chart;
+                    const isDark = document.body.classList.contains('dark'); // Deteksi mode gelap
+                    
+                    ctx.save();
+                    
+                    const meta = chart.getDatasetMeta(0);
+                    // Hitung total untuk persentase
+                    const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                    
+                    if (!meta.data || meta.data.length === 0 || total === 0) return;
+
+                    meta.data.forEach((element, index) => {
+                        if (element.hidden) return;
+
+                        const value = data.datasets[0].data[index];
+                        if (value === 0) return;
+
+                        // Hitung persentase
+                        const percentage = ((value / total) * 100).toFixed(1) + '%';
+                        
+                        // Geometri posisi tengah slice
+                        const { startAngle, endAngle, x, y, outerRadius, innerRadius } = element;
+                        const angle = (startAngle + endAngle) / 2;
+                        const midRadius = (outerRadius + innerRadius) / 2;
+
+                        const textX = x + Math.cos(angle) * midRadius;
+                        const textY = y + Math.sin(angle) * midRadius;
+
+                        // Cek lebar slice agar teks tidak bertumpuk
+                        const sliceAngleDeg = (endAngle - startAngle) * (180 / Math.PI);
+                        
+                        // Tampilkan hanya jika slice > 20 derajat (sedikit dinaikkan agar lebih aman)
+                        if (sliceAngleDeg > 20) { 
+                            ctx.font = 'bold 11px Inter, sans-serif'; // Font sedikit diperbesar
+                            
+                            // PERBAIKAN WARNA DI SINI
+                            if (isDark) {
+                                // MODE GELAP: Putih murni + Shadow hitam agar kontras maksimal
+                                ctx.fillStyle = '#ffffff';
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                                ctx.shadowBlur = 4;
+                                ctx.shadowOffsetX = 1;
+                                ctx.shadowOffsetY = 1;
+                            } else {
+                                // MODE TERANG: Hitam pekat + Shadow putih tipis
+                                ctx.fillStyle = '#0f172a'; // Slate-900 (hitam pekat)
+                                ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+                                ctx.shadowBlur = 3;
+                            }
+
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            
+                            // Render teks persentase
+                            ctx.fillText(percentage, textX, textY);
+                            
+                            // Reset shadow setelah menggambar agar tidak mempengaruhi elemen lain
+                            ctx.shadowColor = 'transparent';
+                            ctx.shadowBlur = 0;
+                            ctx.shadowOffsetX = 0;
+                            ctx.shadowOffsetY = 0;
                         }
-                        return [];
-                    }
-                },
-                onClick: function(e, legendItem, legend) {
-                    const index = legendItem.index;
-                    const ci = legend.chart;
-                    const meta = ci.getDatasetMeta(0);
-                    meta.data[index].hidden = !meta.data[index].hidden;
-                    ci.update();
+                    });
+                    ctx.restore();
                 }
             };
 
             if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){
                 document.getElementById('dynamic-group-pct-labels').style.display = 'none';
                 const last4Months=monthColumns.slice(-4).reverse();
-                const dataValues=last4Months.map(month=>{let sum=0;filteredData.forEach(row=>{sum+=(row[month]||0);});return sum;});
-                if(charts.comp)charts.comp.destroy();
-                charts.comp=new Chart(ctx,{type:'doughnut',data:{labels:last4Months,datasets:[{data:dataValues,backgroundColor:['#4f46e5','#10b981','#f59e0b','#3b82f6'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:mixLegendConfig,tooltip:{callbacks:{label:function(context){let total=context.dataset.data.reduce((a,b)=>a+b,0);let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';}}}}}});
+                const dataValues=last4Months.map(month=>{
+                    let sum=0;
+                    filteredData.forEach(row=>{ sum+=(row[month]||0); });
+                    return sum;
+                });
+                
+                if(charts.comp) charts.comp.destroy();
+                charts.comp=new Chart(ctx, {
+                    type:'doughnut',
+                    data: {
+                        labels: last4Months,
+                        datasets: [{
+                            data: dataValues,
+                            backgroundColor: ['#4f46e5','#10b981','#f59e0b','#3b82f6'],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            // GUNAKAN HELPER OUTLINE LEGEND DI SINI
+                            legend: getOutlineLegendConfig('compChart', isDark),
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context){
+                                        let total=context.dataset.data.reduce((a,b)=>a+b,0);
+                                        let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';
+                                        return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [staticPercentPlugin]
+                });
             } else {
                 document.getElementById('dynamic-group-pct-labels').style.display = 'grid';
-                const dataValues=distinctProducts.map(prod=>{let sum=0;filteredData.forEach(row=>{if(row.PRODUCT===prod)sum+=(row[lastMonth]||0);});return sum;});
+                const dataValues=distinctProducts.map(prod=>{
+                    let sum=0;
+                    filteredData.forEach(row=>{
+                        if(row.PRODUCT===prod) sum+=(row[lastMonth]||0);
+                    });
+                    return sum;
+                });
                 
-                // Menampilkan semua produk secara default (tanpa hidden: true)
-                if(charts.comp)charts.comp.destroy();
-                charts.comp=new Chart(ctx,{type:'doughnut',data:{labels:distinctProducts.map(p=>p==="Sme"?"SME":p.replace(/_/g,' ')),datasets:[{data:dataValues,backgroundColor:distinctProducts.map(p=>productColors[p]),borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:mixLegendConfig,tooltip:{callbacks:{label:function(context){let total=context.dataset.data.reduce((a,b)=>a+b,0);let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';}}}}}});
+                if(charts.comp) charts.comp.destroy();
+                charts.comp=new Chart(ctx, {
+                    type:'doughnut',
+                    data: {
+                        labels: distinctProducts.map(p=>p==="Sme"?"SME":p.replace(/_/g,' ')),
+                        datasets: [{
+                            data: dataValues,
+                            backgroundColor: distinctProducts.map(p=>productColors[p]),
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            // GUNAKAN HELPER OUTLINE LEGEND DI SINI
+                            legend: getOutlineLegendConfig('compChart', isDark),
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context){
+                                        let total=context.dataset.data.reduce((a,b)=>a+b,0);
+                                        let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';
+                                        return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [staticPercentPlugin]
+                });
             }
         }
 
@@ -1302,37 +1464,95 @@
             const currentFileName=csvFilesConfig[currentActiveFileIndex].file;
             const isDark = document.body.classList.contains('dark');
             const textColor = isDark ? '#94a3b8' : '#64748b';
-            const gridColor = isDark ? '#334155' : '#e2e8f0';
 
             const totalCoBranchMap={};
-            filteredData.forEach(row=>{const coBranch=row['CO-BRANCH-CLEAN'];if(coBranch){if(!totalCoBranchMap[coBranch])totalCoBranchMap[coBranch]=0;totalCoBranchMap[coBranch]+=(row[lastMonth]||0);}});
+            filteredData.forEach(row=>{
+                const coBranch=row['CO-BRANCH-CLEAN'];
+                if(coBranch){
+                    if(!totalCoBranchMap[coBranch]) totalCoBranchMap[coBranch]=0;
+                    totalCoBranchMap[coBranch]+=(row[lastMonth]||0);
+                }
+            });
             const top5CoBranchNames=Object.entries(totalCoBranchMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
             
-            // Menambahkan hidden: true untuk semua dataset produk
             const datasetBreakdown=distinctProducts.map(prod=>{
-                return{
-                    label:prod==="Sme"?"SME":prod.replace(/_/g,' '),
-                    data:top5CoBranchNames.map(coName=>{let totalProd=0;filteredData.forEach(row=>{if(row['CO-BRANCH-CLEAN']===coName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),
-                    backgroundColor:productColors[prod],
-                    barThickness:window.innerWidth<768?10:14,
-                    hidden: true // Default hidden
+                return {
+                    label: prod==="Sme" ? "SME" : prod.replace(/_/g,' '),
+                    data: top5CoBranchNames.map(coName=>{
+                        let totalProd=0;
+                        filteredData.forEach(row=>{
+                            if(row['CO-BRANCH-CLEAN']===coName && row.PRODUCT===prod) totalProd+=(row[lastMonth]||0);
+                        });
+                        return totalProd;
+                    }),
+                    backgroundColor: productColors[prod],
+                    barThickness: window.innerWidth<768 ? 10 : 14
                 };
             });
-            
-            // Tambahkan dataset TOTAL yang visible
-            const totalDataset = {
-                label: 'TOTAL',
-                data: top5CoBranchNames.map(coName => totalCoBranchMap[coName] || 0),
-                backgroundColor: isDark ? '#94a3b8' : '#1e293b',
-                barThickness: window.innerWidth<768?10:14,
-                borderWidth: 1,
-                borderColor: isDark ? '#64748b' : '#0f172a'
-            };
-            datasetBreakdown.push(totalDataset);
 
-            if(charts.coBranch)charts.coBranch.destroy();
+            if(charts.coBranch) charts.coBranch.destroy();
             
-            charts.coBranch=new Chart(ctx,{type:'bar',data:{labels:top5CoBranchNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getSquareLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9},color: textColor}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
+            charts.coBranch=new Chart(ctx, {
+                type:'bar',
+                data: { labels: top5CoBranchNames, datasets: datasetBreakdown },
+                options: {
+                    indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:false,
+                    plugins: {
+                        // GUNAKAN HELPER OUTLINE LEGEND DI SINI
+                        legend: getOutlineLegendConfig('coBranchChart', isDark),
+                        tooltip: {
+                            callbacks: {
+                                label: function(context){
+                                    return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { stacked:true, display:false, grid:{display:false} },
+                        y: { stacked:true, grid:{display:false}, ticks:{font:{size:9}, color: textColor} }
+                    }
+                },
+                plugins: [{
+                    id:'internal_bar_labels_instant',
+                    afterDatasetsDraw(chart){
+                        const {ctx}=chart;
+                        ctx.save();
+                        ctx.font='bold 9px Inter, sans-serif';
+                        ctx.fillStyle='#ffffff';
+                        ctx.textAlign='center';
+                        ctx.textBaseline='middle';
+                        const labelsCount=chart.data.labels.length;
+                        for(let i=0;i<labelsCount;i++){
+                            let totalBarValue=0;
+                            chart.data.datasets.forEach((dataset,datasetIdx)=>{
+                                if(chart.isDatasetVisible(datasetIdx)) totalBarValue+=dataset.data[i];
+                            });
+                            if(totalBarValue===0) continue;
+                            
+                            chart.data.datasets.forEach((dataset,datasetIdx)=>{
+                                if(chart.isDatasetVisible(datasetIdx)){
+                                    const element=chart.getDatasetMeta(datasetIdx).data[i];
+                                    const val=dataset.data[i];
+                                    if(element && val>0){
+                                        let displayText='';
+                                        if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){
+                                            displayText=formatNumber(val);
+                                        } else {
+                                            displayText=((val/totalBarValue)*100).toFixed(0)+'%';
+                                        }
+                                        const width=Math.abs(element.x-element.base);
+                                        const centerX=element.base+((element.x-element.base)/2);
+                                        const centerY=element.y;
+                                        if(width>12) ctx.fillText(displayText,centerX,centerY);
+                                    }
+                                }
+                            });
+                        }
+                        ctx.restore();
+                    }
+                }]
+            });
         }
 
         function updateBranchChart(){
@@ -1342,34 +1562,93 @@
             const textColor = isDark ? '#94a3b8' : '#64748b';
 
             const totalOfficeMap={};
-            filteredData.forEach(row=>{const office=row['OFFICE-CLEAN'];if(office){if(!totalOfficeMap[office])totalOfficeMap[office]=0;totalOfficeMap[office]+=(row[lastMonth]||0);}});
+            filteredData.forEach(row=>{
+                const office=row['OFFICE-CLEAN'];
+                if(office){
+                    if(!totalOfficeMap[office]) totalOfficeMap[office]=0;
+                    totalOfficeMap[office]+=(row[lastMonth]||0);
+                }
+            });
             const top5OfficeNames=Object.entries(totalOfficeMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(entry=>entry[0]);
             
-            // Menambahkan hidden: true untuk semua dataset produk
             const datasetBreakdown=distinctProducts.map(prod=>{
-                return{
-                    label:prod==="Sme"?"SME":prod.replace(/_/g,' '),
-                    data:top5OfficeNames.map(officeName=>{let totalProd=0;filteredData.forEach(row=>{if(row['OFFICE-CLEAN']===officeName&&row.PRODUCT===prod){totalProd+=(row[lastMonth]||0);}});return totalProd;}),
-                    backgroundColor:productColors[prod],
-                    barThickness:window.innerWidth<768?10:14,
-                    hidden: true // Default hidden
+                return {
+                    label: prod==="Sme" ? "SME" : prod.replace(/_/g,' '),
+                    data: top5OfficeNames.map(officeName=>{
+                        let totalProd=0;
+                        filteredData.forEach(row=>{
+                            if(row['OFFICE-CLEAN']===officeName && row.PRODUCT===prod) totalProd+=(row[lastMonth]||0);
+                        });
+                        return totalProd;
+                    }),
+                    backgroundColor: productColors[prod],
+                    barThickness: window.innerWidth<768 ? 10 : 14
                 };
             });
 
-            // Tambahkan dataset TOTAL yang visible
-            const totalDataset = {
-                label: 'TOTAL',
-                data: top5OfficeNames.map(officeName => totalOfficeMap[officeName] || 0),
-                backgroundColor: isDark ? '#94a3b8' : '#1e293b',
-                barThickness: window.innerWidth<768?10:14,
-                borderWidth: 1,
-                borderColor: isDark ? '#64748b' : '#0f172a'
-            };
-            datasetBreakdown.push(totalDataset);
-
-            if(charts.branch)charts.branch.destroy();
+            if(charts.branch) charts.branch.destroy();
             
-            charts.branch=new Chart(ctx,{type:'bar',data:{labels:top5OfficeNames,datasets:datasetBreakdown},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:getSquareLegendConfig(),tooltip:{callbacks:{label:function(context){return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);}}}},scales:{x:{stacked:true,display:false,grid:{display:false}},y:{stacked:true,grid:{display:false},ticks:{font:{size:9},color: textColor}}}},plugins:[{id:'internal_bar_labels_instant',afterDatasetsDraw(chart){const{ctx}=chart;ctx.save();ctx.font='bold 9px Inter, sans-serif';ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.textBaseline='middle';const labelsCount=chart.data.labels.length;for(let i=0;i<labelsCount;i++){let totalBarValue=0;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){totalBarValue+=dataset.data[i];}});if(totalBarValue===0)continue;chart.data.datasets.forEach((dataset,datasetIdx)=>{if(chart.isDatasetVisible(datasetIdx)){const element=chart.getDatasetMeta(datasetIdx).data[i];const val=dataset.data[i];if(element&&val>0){let displayText='';if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){displayText=formatNumber(val);}else{displayText=((val/totalBarValue)*100).toFixed(0)+'%';}const width=Math.abs(element.x-element.base);const centerX=element.base+((element.x-element.base)/2);const centerY=element.y;if(width>12){ctx.fillText(displayText,centerX,centerY);}}}});}ctx.restore();}}]});
+            charts.branch=new Chart(ctx, {
+                type:'bar',
+                data: { labels: top5OfficeNames, datasets: datasetBreakdown },
+                options: {
+                    indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:false,
+                    plugins: {
+                        // GUNAKAN HELPER OUTLINE LEGEND DI SINI
+                        legend: getOutlineLegendConfig('branchChart', isDark),
+                        tooltip: {
+                            callbacks: {
+                                label: function(context){
+                                    return context.dataset.label+': '+formatChartValue(context.raw, currentFileName);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { stacked:true, display:false, grid:{display:false} },
+                        y: { stacked:true, grid:{display:false}, ticks:{font:{size:9}, color: textColor} }
+                    }
+                },
+                plugins: [{
+                    id:'internal_bar_labels_instant',
+                    afterDatasetsDraw(chart){
+                        const {ctx}=chart;
+                        ctx.save();
+                        ctx.font='bold 9px Inter, sans-serif';
+                        ctx.fillStyle='#ffffff';
+                        ctx.textAlign='center';
+                        ctx.textBaseline='middle';
+                        const labelsCount=chart.data.labels.length;
+                        for(let i=0;i<labelsCount;i++){
+                            let totalBarValue=0;
+                            chart.data.datasets.forEach((dataset,datasetIdx)=>{
+                                if(chart.isDatasetVisible(datasetIdx)) totalBarValue+=dataset.data[i];
+                            });
+                            if(totalBarValue===0) continue;
+                            
+                            chart.data.datasets.forEach((dataset,datasetIdx)=>{
+                                if(chart.isDatasetVisible(datasetIdx)){
+                                    const element=chart.getDatasetMeta(datasetIdx).data[i];
+                                    const val=dataset.data[i];
+                                    if(element && val>0){
+                                        let displayText='';
+                                        if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){
+                                            displayText=formatNumber(val);
+                                        } else {
+                                            displayText=((val/totalBarValue)*100).toFixed(0)+'%';
+                                        }
+                                        const width=Math.abs(element.x-element.base);
+                                        const centerX=element.base+((element.x-element.base)/2);
+                                        const centerY=element.y;
+                                        if(width>12) ctx.fillText(displayText,centerX,centerY);
+                                    }
+                                }
+                            });
+                        }
+                        ctx.restore();
+                    }
+                }]
+            });
         }
 
         function updateTable(){
