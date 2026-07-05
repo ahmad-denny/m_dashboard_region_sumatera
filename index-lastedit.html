@@ -220,15 +220,20 @@
                     <h2 class="text-sm md:text-lg font-semibold text-slate-800 dark:text-white truncate" id="dashboard-main-title">Performance Analytics</h2>
                 </div>
                 <div class="flex items-center gap-2">
+                    <!-- FIXED: Added ID header-as-of here -->
+                    <div class="text-right hidden sm:block">
+                        <p class="text-[9px] text-slate-500 dark:text-slate-400">As of</p>
+                        <p class="text-xs font-medium text-indigo-600 dark:text-indigo-400" id="header-as-of">-</p>
+                    </div>
                     <button onclick="toggleTheme()" class="w-8 h-8 flex items-center justify-center text-slate-600 dark:text-yellow-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-full transition-colors focus:outline-none" title="Toggle Theme">
                         <i class="fa-solid fa-moon dark:hidden"></i>
                         <i class="fa-solid fa-sun hidden dark:block"></i>
-                    </button>
+                    </button>                    
+                    <!-- MONTH SELECTOR ADDED HERE -->
+                    <select id="month-selector" onchange="handleMonthChange()" class="hidden sm:block text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 rounded px-2 py-1 focus:outline-none cursor-pointer">
+                        <option value="">Loading...</option>
+                    </select>
 
-                    <div class="text-right hidden sm:block">
-                        <p class="text-[9px] text-slate-500 dark:text-slate-400">As of Date</p>
-                        <p class="text-xs font-medium text-indigo-600 dark:text-indigo-400" id="current-date">-</p>
-                    </div>
                     <button onclick="resetFilters()" class="px-2 py-1 text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded transition-colors flex items-center">
                         <i class="fa-solid fa-rotate-right mr-1"></i> Reset
                     </button>                        
@@ -241,13 +246,24 @@
         <div class="sticky top-[75px] md:top-[85px] z-40 bg-[#f8fafc] dark:bg-dark-bg px-3 md:px-6 pt-2 pb-2 border-b border-slate-200/60 dark:border-dark-border shadow-sm transition-colors duration-300" id="kpi-container">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
                 
-                <!-- Card 1 -->
+                <!-- Card 1: Total Booking -->
                 <div class="bg-white dark:bg-dark-card rounded-lg p-2 md:p-3 card-shadow border-l-4 border-indigo-500 min-w-0 transition-colors duration-300">
                     <div class="flex justify-between items-start gap-1">
                         <div class="min-w-0 flex-1">
                             <p class="text-[9px] md:text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate" id="kpi-total-label">Total Outstanding</p>
                             <h3 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white mt-0.5 truncate" id="kpi-total">0</h3>
-                            <div id="mom-total" class="mt-1"></div>
+                            
+                            <!-- UPDATED: Flex container for MoM and YTD badges side-by-side -->
+                            <div class="flex items-center gap-1.5 min-h-[22px]">
+                                <div id="mom-total" class="flex items-center"></div>
+                                
+                                <div id="ytd-total" class="hidden flex items-center">
+                                    <span class="mom-badge bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold flex items-center gap-1">
+                                        <span>YTD</span>
+                                        <span id="ytd-total-val">0</span>
+                                    </span>
+                                </div>
+                            </div>
                         </div>                        
                         <div class="p-1 bg-indigo-50 dark:bg-indigo-900/30 rounded text-indigo-600 dark:text-indigo-400 text-xs shrink-0">
                             <i class="fa-solid fa-calculator"></i>
@@ -258,13 +274,24 @@
                     </div>                    
                 </div>
 
-                <!-- Card 2 -->
+                <!-- Card 2: Consumer / Segment 1 -->
                 <div class="bg-white dark:bg-dark-card rounded-lg p-2 md:p-3 card-shadow border-l-4 border-emerald-500 min-w-0 transition-colors duration-300">
                     <div class="flex justify-between items-start gap-1">
                         <div class="min-w-0 flex-1">
                             <p class="text-[9px] md:text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate" id="kpi-segment1-label">Segment 1</p>
                             <h3 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white mt-0.5 truncate" id="kpi-segment1">0</h3>
-                            <div id="mom-seg1" class="mt-1"></div>
+                            
+                            <!-- NEW: Flex container for MoM and YTD badges -->
+                            <div class="flex items-center gap-1.5 min-h-[22px]">
+                                <div id="mom-seg1" class="flex items-center"></div>
+                                
+                                <div id="ytd-seg1" class="hidden flex items-center">
+                                    <span class="mom-badge bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold flex items-center gap-1">
+                                        <span>YTD</span>
+                                        <span id="ytd-seg1-val">0</span>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                         <div class="p-1 bg-emerald-50 dark:bg-emerald-900/30 rounded text-emerald-600 dark:text-emerald-400 text-xs shrink-0">
                             <i class="fa-solid fa-layer-group"></i>
@@ -275,13 +302,24 @@
                     </div>
                 </div>
 
-                <!-- Card 3 -->
+                <!-- Card 3: SME / Segment 2 -->
                 <div class="bg-white dark:bg-dark-card rounded-lg p-2 md:p-3 card-shadow border-l-4 border-amber-500 min-w-0 transition-colors duration-300">
                     <div class="flex justify-between items-start gap-1">
                         <div class="min-w-0 flex-1">
                             <p class="text-[9px] md:text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate" id="kpi-segment2-label">Segment 2</p>
                             <h3 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white mt-0.5 truncate" id="kpi-segment2">0</h3>
-                            <div id="mom-seg2" class="mt-1"></div>
+                            
+                            <!-- NEW: Flex container for MoM and YTD badges -->
+                            <div class="flex items-center gap-1.5 min-h-[22px]">
+                                <div id="mom-seg2" class="flex items-center"></div>
+                                
+                                <div id="ytd-seg2" class="hidden flex items-center">
+                                    <span class="mom-badge bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold flex items-center gap-1">
+                                        <span>YTD</span>
+                                        <span id="ytd-seg2-val">0</span>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                         <div class="p-1 bg-amber-50 dark:bg-amber-900/30 rounded text-amber-600 dark:text-amber-400 text-xs shrink-0">
                             <i class="fa-solid fa-boxes-stacked"></i>
@@ -292,13 +330,19 @@
                     </div>
                 </div>
 
-                <!-- Card 4 -->
+                <!-- Card 4: Last Month (YTD REMOVED) -->
                 <div class="bg-white dark:bg-dark-card rounded-lg p-2 md:p-3 card-shadow border-l-4 border-blue-500 min-w-0 transition-colors duration-300">
                     <div class="flex justify-between items-start gap-1">
                         <div class="min-w-0 flex-1">
                             <p class="text-[9px] md:text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate" id="kpi-fourth-label">Top Product</p>
                             <h3 class="text-sm md:text-lg font-bold text-slate-800 dark:text-white mt-0.5 truncate" id="kpi-fourth-value">-</h3>
-                            <div id="mom-fourth" class="mt-1"></div>
+                            
+                            <!-- REVERTED: Only MoM badge, no YTD -->
+                            <div class="flex items-center gap-1.5 min-h-[22px]">
+                            <div class="flex items-center"">
+                                <div id="mom-fourth"></div>
+                            </div>
+                            </div>
                         </div>
                         <div class="p-1 bg-blue-50 dark:bg-blue-900/30 rounded text-blue-600 dark:text-blue-400 text-xs shrink-0">
                             <i class="fa-solid fa-trophy" id="kpi-fourth-icon"></i>
@@ -735,11 +779,16 @@
         function switchCSVTab(index) {
             if(index === currentActiveFileIndex) return;
             
+            // 1. SAVE CURRENT FILTERS
             const currentFilters = {};
             filterColumns.forEach(col => {
                 const el = document.getElementById(`filter-${col}`);
                 if(el && el.value !== "ALL") currentFilters[col] = el.value;
             });
+
+            // 2. SAVE CURRENT SELECTED MONTH
+            const selector = document.getElementById('month-selector');
+            const selectedMonth = selector ? selector.value : null;
 
             const activeClass = 'border-indigo-600 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20';
             const inactiveClass = 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600';
@@ -750,10 +799,11 @@
             currentActiveFileIndex = index;
             document.getElementById('loading').style.display = 'flex';
             
-            loadSelectedCSV(index, currentFilters);
+            // 3. PASS SAVED MONTH TO LOAD FUNCTION
+            loadSelectedCSV(index, currentFilters, selectedMonth);
         }
 
-        function loadSelectedCSV(index, preservedFilters = {}) {
+        function loadSelectedCSV(index, preservedFilters = {}, preservedMonth = null) {
             const targetFile = csvFilesConfig[index];
             document.getElementById('dashboard-main-title').innerText = `${targetFile.name.split(' / ')[0]} Dashboard`;
             Papa.parse(targetFile.file, {
@@ -767,13 +817,29 @@
                             productColors = generateColorsForProducts(distinctProducts);
                             groupLabels = [...new Set(rawData.map(row => row.GROUP || 'General'))].filter(Boolean);
                             buildDynamicTableHeader();
+                            
+                            // 4. RESTORE SELECTED MONTH IF IT EXISTS IN NEW DATA
+                            // If no month was preserved (e.g., first login or explicit reset), it defaults to last month via detectColumns
+                            if (preservedMonth && monthColumns.includes(preservedMonth)) {
+                                const selector = document.getElementById('month-selector');
+                                selector.value = preservedMonth;
+                                syncMonthVariablesFromSelector();
+                                
+                                // Update Header Texts immediately
+                                const dateEl = document.getElementById('current-date');
+                                if(dateEl) dateEl.innerText = lastMonth;
+                                const latestLbl = document.getElementById('kpi-latest-lbl');
+                                if(latestLbl) latestLbl.innerText = lastMonth;
+                                const headerAsOf = document.getElementById('header-as-of');
+                                if(headerAsOf) headerAsOf.innerText = lastMonth;
+                            }
                         }
                         processData();
                         initFilters(preservedFilters);
                         updateDashboard();
                     } catch (e) {
                         console.error("Error processing data:", e);
-                        alert("Terjadi kesalahan saat memproses data.");
+                        alert("Terjadi kesalahan saat memproses data.\n\nDetail Error: " + e.message + "\n\nPastikan format header CSV sesuai (Kolom Bulan harus berupa teks seperti 'Jan-24', 'Feb-24', dst).");
                     } finally {
                         document.getElementById('loading').style.display = 'none';
                     }
@@ -788,12 +854,77 @@
 
         function detectColumns(firstRow) {
             const staticFields = ['CO-BRANCH','OFFICE','PRODUCT','GROUP','CO-BRANCH-CLEAN','OFFICE-CLEAN'];
+            
+            // Filter columns that are NOT static fields to find month columns
             monthColumns = Object.keys(firstRow).filter(key => !staticFields.includes(key));
-            lastMonth = monthColumns[monthColumns.length - 1];
-            prevMonth = monthColumns.length > 1 ? monthColumns[monthColumns.length - 2] : '';
-            prevPrevMonth = monthColumns.length > 2 ? monthColumns[monthColumns.length - 3] : '';
-            document.getElementById('current-date').innerText = lastMonth;
-            document.getElementById('kpi-latest-lbl').innerText = lastMonth;
+
+            if (monthColumns.length === 0) {
+                throw new Error("Tidak ditemukan kolom bulan di CSV. Pastikan header CSV memiliki kolom tanggal/bulan.");
+            }
+            
+            // Populate Month Selector
+            const selector = document.getElementById('month-selector');
+            selector.innerHTML = '';
+            
+            // REVERSED SORTING: Oldest at the bottom
+            for (let i = 0; i < monthColumns.length; i++) {
+                const month = monthColumns[i];
+                const option = document.createElement('option');
+                option.value = month;
+                option.text = month;
+                selector.appendChild(option);
+            }
+
+            // FIXED: ALWAYS DEFAULT TO LAST MONTH
+            if (monthColumns.length > 0) {
+                selector.value = monthColumns[monthColumns.length - 1];
+            }
+            
+            // Initial sync with selector value
+            syncMonthVariablesFromSelector();
+
+            // Safe DOM updates
+            const dateEl = document.getElementById('current-date');
+            if(dateEl) dateEl.innerText = lastMonth;
+            
+            const latestLbl = document.getElementById('kpi-latest-lbl');
+            if(latestLbl) latestLbl.innerText = lastMonth;
+            
+            const headerAsOf = document.getElementById('header-as-of');
+            if(headerAsOf) headerAsOf.innerText = lastMonth;
+        }
+
+        function syncMonthVariablesFromSelector() {
+            const selector = document.getElementById('month-selector');
+            const selectedMonth = selector.value;
+            
+            if (selectedMonth) {
+                const selectedIndex = monthColumns.indexOf(selectedMonth);
+                lastMonth = selectedMonth;
+                prevMonth = selectedIndex > 0 ? monthColumns[selectedIndex - 1] : '';
+                prevPrevMonth = selectedIndex > 1 ? monthColumns[selectedIndex - 2] : '';
+            } else {
+                // Fallback if empty
+                lastMonth = monthColumns[monthColumns.length - 1];
+                prevMonth = monthColumns.length > 1 ? monthColumns[monthColumns.length - 2] : '';
+                prevPrevMonth = monthColumns.length > 2 ? monthColumns[monthColumns.length - 3] : '';
+            }
+        }
+
+        // Handler for Month Selector Change
+        window.handleMonthChange = function() {
+            syncMonthVariablesFromSelector();
+            
+            const dateEl = document.getElementById('current-date');
+            if(dateEl) dateEl.innerText = lastMonth;
+            
+            const latestLbl = document.getElementById('kpi-latest-lbl');
+            if(latestLbl) latestLbl.innerText = lastMonth;
+            
+            const headerAsOf = document.getElementById('header-as-of');
+            if(headerAsOf) headerAsOf.innerText = lastMonth;
+            
+            updateDashboard();
         }
 
         function buildDynamicTableHeader() {
@@ -973,12 +1104,31 @@
             updateTrendChart();
         }
 
+        // FIXED: RESET FILTERS NOW FORCES MONTH BACK TO LAST MONTH
         window.resetFilters = function() {
             filterColumns.forEach(col => { const s=document.getElementById(`filter-${col}`); if(s) s.value="ALL"; });
             populateFilterOptions('CO-BRANCH',rawData); populateFilterOptions('OFFICE',rawData); populateFilterOptions('PRODUCT',rawData); populateFilterOptions('GROUP',rawData);
             filteredData=[...rawData]; activeTimelineMonths=0;
+            
+            // Force timeline buttons back to All
             const ids={0:'btn-time-all',3:'btn-time-3',6:'btn-time-6',12:'btn-time-12'};
             Object.entries(ids).forEach(([m,id])=>{const btn=document.getElementById(id);if(btn){if(parseInt(m)===0)btn.className="flex-1 sm:flex-none px-2 py-0.5 text-[10px] font-medium text-white bg-indigo-600 rounded transition-all";else btn.className="flex-1 sm:flex-none px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 rounded hover:bg-white dark:hover:bg-slate-600 transition-all";}});
+            
+            // FORCE MONTH SELECTOR BACK TO LAST MONTH
+            const selector = document.getElementById('month-selector');
+            if(selector && monthColumns.length > 0) {
+                selector.value = monthColumns[monthColumns.length - 1];
+                syncMonthVariablesFromSelector();
+                
+                // Update UI texts immediately
+                const dateEl = document.getElementById('current-date');
+                if(dateEl) dateEl.innerText = lastMonth;
+                const latestLbl = document.getElementById('kpi-latest-lbl');
+                if(latestLbl) latestLbl.innerText = lastMonth;
+                const headerAsOf = document.getElementById('header-as-of');
+                if(headerAsOf) headerAsOf.innerText = lastMonth;
+            }
+
             updateDashboard();
         }
 
@@ -1005,6 +1155,7 @@
             }
         }
 
+        // UPDATED: renderMoM now adds "MoM" prefix and removes "vs" suffix
         function renderMoM(elementId, currentVal, prevVal, isBillion = false, isNPF = false, comparisonLabel = null) {
             const el = document.getElementById(elementId);
             if (!el) return;
@@ -1030,14 +1181,14 @@
 
             const sign = diff > 0 ? '+' : '';
             const formattedDiff = isBillion ? formatToBillion(diff) : formatNumber(diff);
-            const labelText = comparisonLabel || prevMonth;
             
             el.className = `mom-badge ${colorClass}`; 
             
+            // UPDATED: Added "MoM" text before icon, removed "vs" text after value
             el.innerHTML = `
+                <span class="font-bold opacity-80">MTD</span>
                 <i class="fa-solid ${arrow} text-[10px]"></i>
                 <span>${sign}${formattedDiff}</span>
-                <span class="opacity-75 text-[8px] ml-0.5">vs ${labelText}</span>
             `;
         }
 
@@ -1094,12 +1245,26 @@
             const kpiFourthSublabel = document.getElementById('kpi-fourth-sublabel');
             const kpiFourthIcon = document.getElementById('kpi-fourth-icon');
 
-            if (currentFileName === "mdin.csv") {
-                const totalMonths = monthColumns.length;
-                const m1=monthColumns[totalMonths-1]||'-'; const m2=monthColumns[totalMonths-2]||'-';
-                const m3=monthColumns[totalMonths-3]||'-'; const m4=monthColumns[totalMonths-4]||'-';
+            // --- FIXED LOGIC FOR MDIN & QRIS ---
+            // Instead of using fixed indices from the end of the array, 
+            // we calculate indices relative to the currently selected month (lastMonth).
+            if (currentFileName === "mdin.csv" || currentFileName === "qris.csv") {
+                const currentIndex = monthColumns.indexOf(lastMonth);
+                
+                // Calculate relative months safely
+                const m1 = currentIndex >= 0 ? monthColumns[currentIndex] : '-';
+                const m2 = currentIndex >= 1 ? monthColumns[currentIndex - 1] : '-';
+                const m3 = currentIndex >= 2 ? monthColumns[currentIndex - 2] : '-';
+                const m4 = currentIndex >= 3 ? monthColumns[currentIndex - 3] : '-';
+
                 let totalM1=0,totalM2=0,totalM3=0,totalM4=0;
-                filteredData.forEach(row=>{if(m1!=='-')totalM1+=(row[m1]||0);if(m2!=='-')totalM2+=(row[m2]||0);if(m3!=='-')totalM3+=(row[m3]||0);if(m4!=='-')totalM4+=(row[m4]||0);});
+                filteredData.forEach(row=>{
+                    if(m1!=='-')totalM1+=(row[m1]||0);
+                    if(m2!=='-')totalM2+=(row[m2]||0);
+                    if(m3!=='-')totalM3+=(row[m3]||0);
+                    if(m4!=='-')totalM4+=(row[m4]||0);
+                });
+
                 document.getElementById('kpi-total-label').innerText=`Akusisi (${m1})`; animateNumber(document.getElementById('kpi-total'),totalM1);
                 document.getElementById('kpi-segment1-label').innerText=`Akusisi (${m2})`; animateNumber(document.getElementById('kpi-segment1'),totalM2);
                 document.getElementById('kpi-segment1-pct').innerHTML=`<span class="text-slate-400 dark:text-slate-500 font-normal text-[8px]">Posisi 2 Bulan</span>`;
@@ -1110,13 +1275,107 @@
                 kpiFourthIcon.className="fa-solid fa-calendar-check";
                 document.getElementById('mix-chart-title').innerText="Acquisition Trend";
                 ['mom-total','mom-seg1','mom-seg2','mom-fourth'].forEach(id => document.getElementById(id).innerHTML='');
+                
+                // Hide YTD for non-financing
+                document.getElementById('ytd-total').classList.add('hidden');
+                document.getElementById('ytd-seg1').classList.add('hidden');
+                document.getElementById('ytd-seg2').classList.add('hidden');
 
             } else if (currentFileName === "financing.csv") {
                 document.getElementById('kpi-total-label').innerText = "Total Booking";
                 if(isBillionFormat){document.getElementById('kpi-total').innerText=formatToBillion(grandTotal);}else{animateNumber(document.getElementById('kpi-total'),grandTotal);}
                 renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
 
-                const g1=groupLabels[0]; const g2=groupLabels[1];
+                // --- YTD FINANCING LOGIC START (FIXED) ---
+                const ytdContainer = document.getElementById('ytd-total');
+                const ytdValEl = document.getElementById('ytd-total-val');
+                
+                // Extract year more robustly (handles "Jun-26", "Jun 26", "2026", etc.)
+                const parts = lastMonth.split(/[-\s]+/);
+                let selectedYear = null;
+                
+                // Try to find a 2-digit or 4-digit number in the month string
+                for (let part of parts) {
+                    if (/^\d{2}$/.test(part) || /^\d{4}$/.test(part)) {
+                        selectedYear = part;
+                        break;
+                    }
+                }
+                
+                // Fallback: if no year found in string, assume current year or last 2 digits of current year
+                if (!selectedYear) {
+                    const currentYearStr = new Date().getFullYear().toString().slice(-2);
+                    selectedYear = currentYearStr;
+                }
+
+                let ytdTotal = 0;
+                let ytdSeg1 = 0;
+                let ytdSeg2 = 0;
+                
+                const selectedIndex = monthColumns.indexOf(lastMonth);
+                const g1 = groupLabels[0];
+                const g2 = groupLabels[1];
+                
+                // Loop backwards from selected month to start of array
+                // Stop if we hit a month from a different year
+                for (let i = selectedIndex; i >= 0; i--) {
+                    const mCol = monthColumns[i];
+                    const mParts = mCol.split(/[-\s]+/);
+                    let mYear = null;
+                    for (let mp of mParts) {
+                        if (/^\d{2}$/.test(mp) || /^\d{4}$/.test(mp)) {
+                            mYear = mp;
+                            break;
+                        }
+                    }
+                    
+                    // If year matches (or we couldn't determine year, assume same), add to sum
+                    if (mYear === selectedYear || !mYear) {
+                        // UPDATED: Use FILTEREDDATA to respect active filters
+                        filteredData.forEach(row => {
+                            const val = row[mCol] || 0;
+                            ytdTotal += val;
+                            
+                            // Calculate YTD for Segments based on Group
+                            if (g1 && row.GROUP === g1) ytdSeg1 += val;
+                            if (g2 && row.GROUP === g2) ytdSeg2 += val;
+                        });
+                    } else {
+                        // If we hit a previous year, stop accumulating
+                        break;
+                    }
+                }
+                
+                // Update Total YTD
+                ytdContainer.classList.remove('hidden');
+                if (isBillionFormat) {
+                    ytdValEl.innerText = formatToBillion(ytdTotal);
+                } else {
+                    ytdValEl.innerText = formatNumber(ytdTotal);
+                }
+
+                // Update Segment 1 (Consumer) YTD
+                const ytdSeg1Container = document.getElementById('ytd-seg1');
+                const ytdSeg1ValEl = document.getElementById('ytd-seg1-val');
+                ytdSeg1Container.classList.remove('hidden');
+                if (isBillionFormat) {
+                    ytdSeg1ValEl.innerText = formatToBillion(ytdSeg1);
+                } else {
+                    ytdSeg1ValEl.innerText = formatNumber(ytdSeg1);
+                }
+
+                // Update Segment 2 (SME) YTD
+                const ytdSeg2Container = document.getElementById('ytd-seg2');
+                const ytdSeg2ValEl = document.getElementById('ytd-seg2-val');
+                ytdSeg2Container.classList.remove('hidden');
+                if (isBillionFormat) {
+                    ytdSeg2ValEl.innerText = formatToBillion(ytdSeg2);
+                } else {
+                    ytdSeg2ValEl.innerText = formatNumber(ytdSeg2);
+                }
+                
+                // --- YTD FINANCING LOGIC END ---
+
                 const g1Pct=grandTotal?((groupTotals[g1]/grandTotal)*100):0;
                 const g2Pct=grandTotal?((groupTotals[g2]/grandTotal)*100):0;
 
@@ -1143,6 +1402,11 @@
                 document.getElementById('kpi-total-label').innerText = "Total Funding";
                 if(isBillionFormat){document.getElementById('kpi-total').innerText=formatToBillion(grandTotal);}else{animateNumber(document.getElementById('kpi-total'),grandTotal);}
                 renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
+                
+                // Hide YTD for non-financing
+                document.getElementById('ytd-total').classList.add('hidden');
+                document.getElementById('ytd-seg1').classList.add('hidden');
+                document.getElementById('ytd-seg2').classList.add('hidden');
 
                 document.getElementById('kpi-segment1-label').innerText = "CA (Giro)";
                 if(isBillionFormat){document.getElementById('kpi-segment1').innerText=formatToBillion(caTotal);}else{animateNumber(document.getElementById('kpi-segment1'),caTotal);}
@@ -1167,6 +1431,11 @@
                 document.getElementById('kpi-total-label').innerText = "Total Porsi";
                 animateNumber(document.getElementById('kpi-total'), grandTotal);
                 renderMoM('mom-total', grandTotal, grandTotalPrev, false, isNPF);
+                
+                // Hide YTD for non-financing
+                document.getElementById('ytd-total').classList.add('hidden');
+                document.getElementById('ytd-seg1').classList.add('hidden');
+                document.getElementById('ytd-seg2').classList.add('hidden');
 
                 const g1=groupLabels[0]; const g2=groupLabels[1];
                 document.getElementById('kpi-segment1-label').innerText=g1?`${g1}`:'Segment 1';
@@ -1188,46 +1457,15 @@
                 kpiFourthIcon.className = "fa-solid fa-book-open";
                 renderMoM('mom-fourth', prevMonthGrandTotal, prevPrevMonthGrandTotal, false, isNPF, prevPrevMonth);
 
-            } else if (currentFileName === "qris.csv") {
-                const totalMonths = monthColumns.length;
-                const m1 = monthColumns[totalMonths - 1] || '-';
-                const m2 = monthColumns[totalMonths - 2] || '-';
-                const m3 = monthColumns[totalMonths - 3] || '-';
-                const m4 = monthColumns[totalMonths - 4] || '-';
-
-                let totalM1 = 0, totalM2 = 0, totalM3 = 0, totalM4 = 0;
-                filteredData.forEach(row => {
-                    if (m1 !== '-') totalM1 += (row[m1] || 0);
-                    if (m2 !== '-') totalM2 += (row[m2] || 0);
-                    if (m3 !== '-') totalM3 += (row[m3] || 0);
-                    if (m4 !== '-') totalM4 += (row[m4] || 0);
-                });
-
-                document.getElementById('kpi-total-label').innerText = `Akusisi (${m1})`;
-                animateNumber(document.getElementById('kpi-total'), totalM1);
-                document.getElementById('kpi-latest-lbl').innerText = m1;
-
-                document.getElementById('kpi-segment1-label').innerText = `Akusisi (${m2})`;
-                animateNumber(document.getElementById('kpi-segment1'), totalM2);
-                document.getElementById('kpi-segment1-pct').innerHTML = `<span class="text-slate-400 dark:text-slate-500 font-normal text-[8px]">Posisi 2 Bulan</span>`;
-
-                document.getElementById('kpi-segment2-label').innerText = `Akusisi (${m3})`;
-                animateNumber(document.getElementById('kpi-segment2'), totalM3);
-                document.getElementById('kpi-segment2-pct').innerHTML = `<span class="text-slate-400 dark:text-slate-500 font-normal text-[8px]">Posisi 3 Bulan</span>`;
-
-                kpiFourthLabel.innerText = `Akusisi (${m4})`;
-                kpiFourthValue.innerText = formatNumber(totalM4);
-                kpiFourthSublabel.className = "text-slate-400 dark:text-slate-500 not-italic truncate";
-                kpiFourthSublabel.innerText = "Posisi 4 bulan";
-                kpiFourthIcon.className = "fa-solid fa-calendar-check";
-
-                ['mom-total','mom-seg1','mom-seg2','mom-fourth'].forEach(id => document.getElementById(id).innerHTML='');
-                document.getElementById('mix-chart-title').innerText = "Acquisition Trend";
-
             } else if (currentFileName === "coll.csv") {
                 document.getElementById('kpi-total-label').innerText = "Total Outstanding";
                 if(isBillionFormat){document.getElementById('kpi-total').innerText=formatToBillion(grandTotal);}else{animateNumber(document.getElementById('kpi-total'),grandTotal);}
                 renderMoM('mom-total', grandTotal, grandTotalPrev, isBillionFormat, isNPF);
+                
+                // Hide YTD for non-financing
+                document.getElementById('ytd-total').classList.add('hidden');
+                document.getElementById('ytd-seg1').classList.add('hidden');
+                document.getElementById('ytd-seg2').classList.add('hidden');
 
                 const g1=groupLabels[0]; const g2=groupLabels[1];
                 document.getElementById('kpi-segment1-label').innerText=g1?`${g1}`:'Segment 1';
@@ -1254,6 +1492,11 @@
                 kpiFourthSublabel.className = "text-slate-400 dark:text-slate-500 italic truncate";
                 kpiFourthSublabel.innerText = "By Volume Month";
                 kpiFourthIcon.className = "fa-solid fa-trophy";
+                
+                // Hide YTD for non-financing
+                document.getElementById('ytd-total').classList.add('hidden');
+                document.getElementById('ytd-seg1').classList.add('hidden');
+                document.getElementById('ytd-seg2').classList.add('hidden');
 
                 let totalLabelText = "Total Outstanding";
                 document.getElementById('kpi-total-label').innerText = totalLabelText;
@@ -1287,8 +1530,16 @@
                 if(element){
                     let pct=0;
                     if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){
-                        const last4Months=monthColumns.slice(-4); let grp4MTotal=0; let all4MTotal=0;
-                        filteredData.forEach(row=>{last4Months.forEach(m=>{const val=row[m]||0;if(row.GROUP===grp)grp4MTotal+=val;all4MTotal+=val;});});
+                        // Also fix composition chart logic for MDin/Qris to use relative months
+                        const currentIndex = monthColumns.indexOf(lastMonth);
+                        const relMonths = [];
+                        if(currentIndex >= 0) relMonths.push(monthColumns[currentIndex]);
+                        if(currentIndex >= 1) relMonths.push(monthColumns[currentIndex - 1]);
+                        if(currentIndex >= 2) relMonths.push(monthColumns[currentIndex - 2]);
+                        if(currentIndex >= 3) relMonths.push(monthColumns[currentIndex - 3]);
+
+                        let grp4MTotal=0; let all4MTotal=0;
+                        filteredData.forEach(row=>{relMonths.forEach(m=>{const val=row[m]||0;if(row.GROUP===grp)grp4MTotal+=val;all4MTotal+=val;});});
                         pct=all4MTotal?((grp4MTotal/all4MTotal)*100):0;
                     } else { pct=grandTotal?((groupTotals[grp]/grandTotal)*100):0; }
                     animateNumber(element,pct,true);
@@ -1442,19 +1693,35 @@
                 }
             };
 
-            if(currentFileName==="mdin.csv" || currentFileName==="qris.csv"){
+            // --- UPDATED LOGIC BASED ON TAB TYPE ---
+            
+            // 1. MDIN: Monthly Acquisition (5 bulan terakhir)
+            if(currentFileName === "mdin.csv"){
                 document.getElementById('dynamic-group-pct-labels').style.display = 'none';
-                const last4Months=monthColumns.slice(-4).reverse();
-                const dataValues=last4Months.map(month=>{let sum=0;filteredData.forEach(row=>{sum+=(row[month]||0);});return sum;});
+                document.getElementById('mix-chart-title').innerText = "Monthly Acquisition";
+                
+                const currentIndex = monthColumns.indexOf(lastMonth);
+                const last5Months = [];
+                // Get 5 months ending at selected month
+                for(let i=0; i<5; i++) {
+                    if(currentIndex - i >= 0) last5Months.push(monthColumns[currentIndex - i]);
+                }
+                last5Months.reverse(); // Show oldest first
+                
+                const dataValues = last5Months.map(month => {
+                    let sum = 0;
+                    filteredData.forEach(row => { sum += (row[month] || 0); });
+                    return sum;
+                });
                 
                 if(charts.comp) charts.comp.destroy();
-                charts.comp=new Chart(ctx, {
-                    type:'doughnut',
+                charts.comp = new Chart(ctx, {
+                    type: 'doughnut',
                     data: {
-                        labels: last4Months,
+                        labels: last5Months,
                         datasets: [{
                             data: dataValues,
-                            backgroundColor: ['#4f46e5','#10b981','#f59e0b','#3b82f6'],
+                            backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6'],
                             borderWidth: 0,
                             hoverOffset: 4
                         }]
@@ -1468,9 +1735,9 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(context){
-                                        let total=context.dataset.data.reduce((a,b)=>a+b,0);
-                                        let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';
-                                        return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';
+                                        let total = context.dataset.data.reduce((a,b)=>a+b,0);
+                                        let percentage = total ? ((context.raw/total)*100).toFixed(1)+'%' : '0%';
+                                        return context.label + ': ' + formatChartValue(context.raw, currentFileName) + ' (' + percentage + ')';
                                     }
                                 }
                             }
@@ -1478,18 +1745,33 @@
                     },
                     plugins: [staticPercentPlugin]
                 });
-            } else {
-                document.getElementById('dynamic-group-pct-labels').style.display = 'grid';
-                const dataValues=distinctProducts.map(prod=>{let sum=0;filteredData.forEach(row=>{if(row.PRODUCT===prod)sum+=(row[lastMonth]||0);});return sum;});
+
+            // 2. QRIS: Product Acquisition (Ada Transaksi & Tidak Bertransaksi)
+            } else if(currentFileName === "qris.csv"){
+                document.getElementById('dynamic-group-pct-labels').style.display = 'none';
+                document.getElementById('mix-chart-title').innerText = "Product Acquisition";
                 
+                // Logic: Check PRODUCT column for transaction status keywords
+                // Assuming 'Ada Transaksi' vs 'Tidak Bertransaksi' based on product names or groups
+                // We will group by PRODUCT for simplicity, or GROUP if available.
+                // Let's assume distinctProducts contains the categories like "Aktif", "Non-Aktif" etc.
+                
+                const dataValues = distinctProducts.map(prod => {
+                    let sum = 0;
+                    filteredData.forEach(row => {
+                        if(row.PRODUCT === prod) sum += (row[lastMonth] || 0);
+                    });
+                    return sum;
+                });
+
                 if(charts.comp) charts.comp.destroy();
-                charts.comp=new Chart(ctx, {
-                    type:'doughnut',
+                charts.comp = new Chart(ctx, {
+                    type: 'doughnut',
                     data: {
-                        labels: distinctProducts.map(p=>p==="Sme"?"SME":p.replace(/_/g,' ')),
+                        labels: distinctProducts.map(p => p === "Sme" ? "SME" : p.replace(/_/g, ' ')),
                         datasets: [{
                             data: dataValues,
-                            backgroundColor: distinctProducts.map(p=>productColors[p]),
+                            backgroundColor: distinctProducts.map(p => productColors[p]),
                             borderWidth: 0,
                             hoverOffset: 4
                         }]
@@ -1503,9 +1785,54 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(context){
-                                        let total=context.dataset.data.reduce((a,b)=>a+b,0);
-                                        let percentage=total?((context.raw/total)*100).toFixed(1)+'%':'0%';
-                                        return context.label+': '+formatChartValue(context.raw, currentFileName)+' ('+percentage+')';
+                                        let total = context.dataset.data.reduce((a,b)=>a+b,0);
+                                        let percentage = total ? ((context.raw/total)*100).toFixed(1)+'%' : '0%';
+                                        return context.label + ': ' + formatChartValue(context.raw, currentFileName) + ' (' + percentage + ')';
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [staticPercentPlugin]
+                });
+
+            // 3. FINANCING, FUNDING, HAJJ, NPF: Product Distribution
+            } else {
+                document.getElementById('dynamic-group-pct-labels').style.display = 'grid';
+                document.getElementById('mix-chart-title').innerText = "Product Distribution";
+                
+                const dataValues = distinctProducts.map(prod => {
+                    let sum = 0;
+                    filteredData.forEach(row => {
+                        if(row.PRODUCT === prod) sum += (row[lastMonth] || 0);
+                    });
+                    return sum;
+                });
+                
+                if(charts.comp) charts.comp.destroy();
+                charts.comp = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: distinctProducts.map(p => p === "Sme" ? "SME" : p.replace(/_/g, ' ')),
+                        datasets: [{
+                            data: dataValues,
+                            backgroundColor: distinctProducts.map(p => productColors[p]),
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: getOutlineLegendConfig('compChart', isDark),
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context){
+                                        let total = context.dataset.data.reduce((a,b)=>a+b,0);
+                                        let percentage = total ? ((context.raw/total)*100).toFixed(1)+'%' : '0%';
+                                        return context.label + ': ' + formatChartValue(context.raw, currentFileName) + ' (' + percentage + ')';
                                     }
                                 }
                             }
