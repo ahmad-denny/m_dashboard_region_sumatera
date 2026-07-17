@@ -232,6 +232,7 @@
                 <div class="flex items-center gap-2">
                     <div class="text-right hidden sm:block">
                         <p class="text-[9px] text-slate-500 dark:text-slate-400">As of</p>
+                        <!-- ID header-as-of digunakan untuk menampilkan tanggal -->
                         <p class="text-xs font-medium text-indigo-600 dark:text-indigo-400" id="header-as-of">-</p>
                     </div>
                     <button onclick="toggleTheme()" class="w-8 h-8 flex items-center justify-center text-slate-600 dark:text-yellow-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-full transition-colors focus:outline-none" title="Toggle Theme">
@@ -456,6 +457,10 @@
         document.addEventListener('dragstart', function(e) {
             if (e.target.tagName === 'IMG') e.preventDefault();
         });
+
+        // --- KONFIGURASI TANGGAL MANUAL ---
+        // Ubah tanggal di sini sesuai kebutuhan untuk bulan terakhir
+        const MANUAL_DATE_LATEST_MONTH = '17 Juli 2026'; 
 
         const DASHBOARD_PASSWORD = 'rbpm'; 
         function initTheme() {
@@ -722,12 +727,7 @@
                                 const selector = document.getElementById('month-selector');
                                 selector.value = preservedMonth;
                                 syncMonthVariablesFromSelector();
-                                const dateEl = document.getElementById('current-date');
-                                if(dateEl) dateEl.innerText = lastMonth;
-                                const latestLbl = document.getElementById('kpi-latest-lbl');
-                                if(latestLbl) latestLbl.innerText = lastMonth;
-                                const headerAsOf = document.getElementById('header-as-of');
-                                if(headerAsOf) headerAsOf.innerText = lastMonth;
+                                updateHeaderDateDisplay(); // Gunakan fungsi baru
                             }
                         }
                         processData();
@@ -762,12 +762,7 @@
             }
             if (monthColumns.length > 0) selector.value = monthColumns[monthColumns.length - 1];
             syncMonthVariablesFromSelector();
-            const dateEl = document.getElementById('current-date');
-            if(dateEl) dateEl.innerText = lastMonth;
-            const latestLbl = document.getElementById('kpi-latest-lbl');
-            if(latestLbl) latestLbl.innerText = lastMonth;
-            const headerAsOf = document.getElementById('header-as-of');
-            if(headerAsOf) headerAsOf.innerText = lastMonth;
+            updateHeaderDateDisplay(); // Gunakan fungsi baru
         }
         function syncMonthVariablesFromSelector() {
             const selector = document.getElementById('month-selector');
@@ -783,14 +778,27 @@
                 prevPrevMonth = monthColumns.length > 2 ? monthColumns[monthColumns.length - 3] : '';
             }
         }
+        
+        // FUNGSI BARU UNTUK MENAMPILKAN TANGGAL DI HEADER
+        function updateHeaderDateDisplay() {
+            const dateEl = document.getElementById('current-date');
+            const latestLbl = document.getElementById('kpi-latest-lbl');
+            const headerAsOf = document.getElementById('header-as-of');
+            
+            // Cek apakah bulan yang aktif adalah bulan terakhir dari dataset
+            const isLastMonth = (lastMonth === monthColumns[monthColumns.length - 1]);
+            
+            // Tentukan teks yang akan ditampilkan
+            const displayText = isLastMonth ? MANUAL_DATE_LATEST_MONTH : lastMonth;
+
+            if(dateEl) dateEl.innerText = displayText;
+            if(latestLbl) latestLbl.innerText = displayText;
+            if(headerAsOf) headerAsOf.innerText = displayText;
+        }
+
         window.handleMonthChange = function() {
             syncMonthVariablesFromSelector();
-            const dateEl = document.getElementById('current-date');
-            if(dateEl) dateEl.innerText = lastMonth;
-            const latestLbl = document.getElementById('kpi-latest-lbl');
-            if(latestLbl) latestLbl.innerText = lastMonth;
-            const headerAsOf = document.getElementById('header-as-of');
-            if(headerAsOf) headerAsOf.innerText = lastMonth;
+            updateHeaderDateDisplay(); // Gunakan fungsi baru
             updateDashboard();
         }
         function buildDynamicTableHeader() {
@@ -958,12 +966,7 @@
             if(selector && monthColumns.length > 0) {
                 selector.value = monthColumns[monthColumns.length - 1];
                 syncMonthVariablesFromSelector();
-                const dateEl = document.getElementById('current-date');
-                if(dateEl) dateEl.innerText = lastMonth;
-                const latestLbl = document.getElementById('kpi-latest-lbl');
-                if(latestLbl) latestLbl.innerText = lastMonth;
-                const headerAsOf = document.getElementById('header-as-of');
-                if(headerAsOf) headerAsOf.innerText = lastMonth;
+                updateHeaderDateDisplay(); // Gunakan fungsi baru
             }
             updateDashboard();
         }
